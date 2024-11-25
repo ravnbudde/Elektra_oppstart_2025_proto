@@ -2,6 +2,11 @@
 *.hex
 *.elf
 *.lss
+*.o
+*.atsuo
+*.eep
+*.d
+*.mk
 *.srec
 ATtiny85main/main/main/Debug/Makefile
 *.map
