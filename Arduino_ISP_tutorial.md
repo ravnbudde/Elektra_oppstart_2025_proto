@@ -17,3 +17,5 @@ I ATmel studio:
 **NB** Bytt ut COM3 til COM arduinoen er koblet i. Butt ut "path_til" med path til avrdude.exe/conf  
 
 For å laste over: Tools -> Deploy
+
+
