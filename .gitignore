@@ -1,1 +1,7 @@
 
+*.hex
+*.elf
+*.lss
+*.srec
+ATtiny85main/main/main/Debug/Makefile
+*.map
