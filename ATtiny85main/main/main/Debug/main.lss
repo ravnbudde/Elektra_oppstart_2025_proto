@@ -3,31 +3,31 @@ main.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         000001a2  00000000  00000000  00000094  2**1
+  0 .text         000000c2  00000000  00000000  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000002  00800060  000001a2  00000236  2**0
+  1 .data         00000002  00800060  000000c2  00000156  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .bss          00000001  00800062  00800062  00000238  2**0
+  2 .bss          00000001  00800062  00800062  00000158  2**0
                   ALLOC
-  3 .comment      00000030  00000000  00000000  00000238  2**0
+  3 .comment      00000030  00000000  00000000  00000158  2**0
                   CONTENTS, READONLY
-  4 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00000268  2**2
+  4 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00000188  2**2
                   CONTENTS, READONLY
-  5 .debug_aranges 00000028  00000000  00000000  000002a4  2**0
+  5 .debug_aranges 00000028  00000000  00000000  000001c4  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   000004f7  00000000  00000000  000002cc  2**0
+  6 .debug_info   000004f7  00000000  00000000  000001ec  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 0000046e  00000000  00000000  000007c3  2**0
+  7 .debug_abbrev 0000046e  00000000  00000000  000006e3  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   000001fc  00000000  00000000  00000c31  2**0
+  8 .debug_line   000001ea  00000000  00000000  00000b51  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000078  00000000  00000000  00000e30  2**2
+  9 .debug_frame  00000048  00000000  00000000  00000d3c  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    000002d2  00000000  00000000  00000ea8  2**0
+ 10 .debug_str    000002d2  00000000  00000000  00000d84  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    000000be  00000000  00000000  0000117a  2**0
+ 11 .debug_loc    00000049  00000000  00000000  00001056  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000018  00000000  00000000  00001238  2**0
+ 12 .debug_ranges 00000018  00000000  00000000  0000109f  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -38,7 +38,7 @@ Disassembly of section .text:
    4:	27 c0       	rjmp	.+78     	; 0x54 <__bad_interrupt>
    6:	26 c0       	rjmp	.+76     	; 0x54 <__bad_interrupt>
    8:	25 c0       	rjmp	.+74     	; 0x54 <__bad_interrupt>
-   a:	3a c0       	rjmp	.+116    	; 0x80 <__vector_5>
+   a:	34 c0       	rjmp	.+104    	; 0x74 <__vector_5>
    c:	23 c0       	rjmp	.+70     	; 0x54 <__bad_interrupt>
    e:	22 c0       	rjmp	.+68     	; 0x54 <__bad_interrupt>
   10:	21 c0       	rjmp	.+66     	; 0x54 <__bad_interrupt>
@@ -61,8 +61,8 @@ Disassembly of section .text:
   2a:	10 e0       	ldi	r17, 0x00	; 0
   2c:	a0 e6       	ldi	r26, 0x60	; 96
   2e:	b0 e0       	ldi	r27, 0x00	; 0
-  30:	e2 ea       	ldi	r30, 0xA2	; 162
-  32:	f1 e0       	ldi	r31, 0x01	; 1
+  30:	e2 ec       	ldi	r30, 0xC2	; 194
+  32:	f0 e0       	ldi	r31, 0x00	; 0
   34:	02 c0       	rjmp	.+4      	; 0x3a <__do_copy_data+0x10>
   36:	05 90       	lpm	r0, Z+
   38:	0d 92       	st	X+, r0
@@ -84,7 +84,7 @@ Disassembly of section .text:
   4c:	b2 07       	cpc	r27, r18
   4e:	e1 f7       	brne	.-8      	; 0x48 <.do_clear_bss_loop>
   50:	02 d0       	rcall	.+4      	; 0x56 <main>
-  52:	a5 c0       	rjmp	.+330    	; 0x19e <_exit>
+  52:	35 c0       	rjmp	.+106    	; 0xbe <_exit>
 
 00000054 <__bad_interrupt>:
   54:	d5 cf       	rjmp	.-86     	; 0x0 <__vectors>
@@ -94,221 +94,83 @@ volatile int8_t step = 1;         // Endringssteg for fading (+ eller -)
 
 int main(void)
 {
-    // Sett PB1 (OC0B) som utgang
-    DDRB |= (1 << DDB1);
-  56:	b9 9a       	sbi	0x17, 1	; 23
+	// Sett PB0 som utgang
+	DDRB |= (1 << DDB0);
+  56:	b8 9a       	sbi	0x17, 0	; 23
 
-    // Konfigurer Timer0 i Fast PWM, TOP = OCR0A (Mode 7)
-    TCCR0A |= (1 << WGM00) | (1 << WGM01); // Fast PWM
+	TCCR0A |= (1 << WGM00) | (1 << WGM01); // Fast PWM-modus
   58:	8a b5       	in	r24, 0x2a	; 42
   5a:	83 60       	ori	r24, 0x03	; 3
   5c:	8a bd       	out	0x2a, r24	; 42
-    TCCR0A |= (1 << COM0B1);               // Clear OC0B on Compare Match
+	TCCR0A |= (1 << COM0A1);               // Clear OC0A på sammenligning, sett på topp
   5e:	8a b5       	in	r24, 0x2a	; 42
-  60:	80 62       	ori	r24, 0x20	; 32
+  60:	80 68       	ori	r24, 0x80	; 128
   62:	8a bd       	out	0x2a, r24	; 42
-    TCCR0B |= (1 << WGM02);                // TOP = OCR0A
+	TCCR0B |= (1 << CS01);                 // Sett prescaler til 8 (4 MHz / 8 = 500 kHz PWM)
   64:	83 b7       	in	r24, 0x33	; 51
-  66:	88 60       	ori	r24, 0x08	; 8
+  66:	82 60       	ori	r24, 0x02	; 2
   68:	83 bf       	out	0x33, r24	; 51
-    TCCR0B |= (1 << CS02) | (1 << CS00);   // Prescaler = 1024
-  6a:	83 b7       	in	r24, 0x33	; 51
-  6c:	85 60       	ori	r24, 0x05	; 5
-  6e:	83 bf       	out	0x33, r24	; 51
 
-    // Sett toppverdi for 50 Hz frekvens
-    OCR0A = 3; // for 50Hz: f_clk / (prescaler * PWM_freq) - 1 = 3906 / 50 - 1 = 77
-  70:	83 e0       	ldi	r24, 0x03	; 3
-  72:	89 bd       	out	0x29, r24	; 41
+	// Aktiver interrupt på Timer0 overflow
+	TIMSK |= (1 << TOIE0);
+  6a:	89 b7       	in	r24, 0x39	; 57
+  6c:	82 60       	ori	r24, 0x02	; 2
+  6e:	89 bf       	out	0x39, r24	; 57
 
-    // Sett initial duty cycle
-    OCR0B = 0;
-  74:	18 bc       	out	0x28, r1	; 40
+	sei();
+  70:	78 94       	sei
+  72:	ff cf       	rjmp	.-2      	; 0x72 <main+0x1c>
 
-    // Aktiver overflow interrupt
-    TIMSK |= (1 << TOIE0);
-  76:	89 b7       	in	r24, 0x39	; 57
-  78:	82 60       	ori	r24, 0x02	; 2
-  7a:	89 bf       	out	0x39, r24	; 57
-
-    // Aktiver globale interrupt
-    sei();
-  7c:	78 94       	sei
-  7e:	ff cf       	rjmp	.-2      	; 0x7e <main+0x28>
-
-00000080 <__vector_5>:
-        // Hovudløkka kan vere tom – fading skjer i interrupt
-    }
+00000074 <__vector_5>:
+		// Hovudløkka gjer ingenting – 
+	}
 }
 
 ISR(TIMER0_OVF_vect)
 {
-  80:	1f 92       	push	r1
-  82:	0f 92       	push	r0
-  84:	0f b6       	in	r0, 0x3f	; 63
-  86:	0f 92       	push	r0
-  88:	11 24       	eor	r1, r1
-  8a:	2f 93       	push	r18
-  8c:	3f 93       	push	r19
-  8e:	5f 93       	push	r21
-  90:	6f 93       	push	r22
-  92:	7f 93       	push	r23
-  94:	8f 93       	push	r24
-  96:	9f 93       	push	r25
-  98:	af 93       	push	r26
-  9a:	bf 93       	push	r27
-  9c:	ef 93       	push	r30
-  9e:	ff 93       	push	r31
-	// Endre lysstyrken gradvis
-	brightness += step;
-  a0:	90 91 60 00 	lds	r25, 0x0060	; 0x800060 <__DATA_REGION_ORIGIN__>
-  a4:	80 91 62 00 	lds	r24, 0x0062	; 0x800062 <__data_end>
-  a8:	89 0f       	add	r24, r25
-  aa:	80 93 62 00 	sts	0x0062, r24	; 0x800062 <__data_end>
+  74:	1f 92       	push	r1
+  76:	0f 92       	push	r0
+  78:	0f b6       	in	r0, 0x3f	; 63
+  7a:	0f 92       	push	r0
+  7c:	11 24       	eor	r1, r1
+  7e:	8f 93       	push	r24
+  80:	9f 93       	push	r25
+	brightness += step; // Endre lysstyrken
+  82:	90 91 60 00 	lds	r25, 0x0060	; 0x800060 <__DATA_REGION_ORIGIN__>
+  86:	80 91 62 00 	lds	r24, 0x0062	; 0x800062 <__data_end>
+  8a:	89 0f       	add	r24, r25
+  8c:	80 93 62 00 	sts	0x0062, r24	; 0x800062 <__data_end>
 
-	// Snu retning ved topp eller bunn
-	if (brightness == 0 || brightness >= (255/OCR0A)*255)
-  ae:	80 91 62 00 	lds	r24, 0x0062	; 0x800062 <__data_end>
-  b2:	88 23       	and	r24, r24
-  b4:	e9 f0       	breq	.+58     	; 0xf0 <__vector_5+0x70>
-  b6:	e0 91 62 00 	lds	r30, 0x0062	; 0x800062 <__data_end>
-  ba:	69 b5       	in	r22, 0x29	; 41
-  bc:	f0 e0       	ldi	r31, 0x00	; 0
-  be:	70 e0       	ldi	r23, 0x00	; 0
-  c0:	8f ef       	ldi	r24, 0xFF	; 255
-  c2:	90 e0       	ldi	r25, 0x00	; 0
-  c4:	45 d0       	rcall	.+138    	; 0x150 <__divmodhi4>
-  c6:	cb 01       	movw	r24, r22
-  c8:	82 95       	swap	r24
-  ca:	92 95       	swap	r25
-  cc:	90 7f       	andi	r25, 0xF0	; 240
-  ce:	98 27       	eor	r25, r24
-  d0:	80 7f       	andi	r24, 0xF0	; 240
-  d2:	98 27       	eor	r25, r24
-  d4:	86 1b       	sub	r24, r22
-  d6:	97 0b       	sbc	r25, r23
-  d8:	9c 01       	movw	r18, r24
-  da:	22 95       	swap	r18
-  dc:	32 95       	swap	r19
-  de:	30 7f       	andi	r19, 0xF0	; 240
-  e0:	32 27       	eor	r19, r18
-  e2:	20 7f       	andi	r18, 0xF0	; 240
-  e4:	32 27       	eor	r19, r18
-  e6:	82 0f       	add	r24, r18
-  e8:	93 1f       	adc	r25, r19
-  ea:	e8 17       	cp	r30, r24
-  ec:	f9 07       	cpc	r31, r25
-  ee:	2c f0       	brlt	.+10     	; 0xfa <__vector_5+0x7a>
+	// Sjekk for topp eller bunn av duty cycle
+	if (brightness == 0 || brightness == 255)
+  90:	80 91 62 00 	lds	r24, 0x0062	; 0x800062 <__data_end>
+  94:	88 23       	and	r24, r24
+  96:	21 f0       	breq	.+8      	; 0xa0 <__vector_5+0x2c>
+  98:	80 91 62 00 	lds	r24, 0x0062	; 0x800062 <__data_end>
+  9c:	8f 3f       	cpi	r24, 0xFF	; 255
+  9e:	29 f4       	brne	.+10     	; 0xaa <__vector_5+0x36>
 	{
-		step = -step;
-  f0:	80 91 60 00 	lds	r24, 0x0060	; 0x800060 <__DATA_REGION_ORIGIN__>
-  f4:	81 95       	neg	r24
-  f6:	80 93 60 00 	sts	0x0060, r24	; 0x800060 <__DATA_REGION_ORIGIN__>
+		step = -step; 
+  a0:	80 91 60 00 	lds	r24, 0x0060	; 0x800060 <__DATA_REGION_ORIGIN__>
+  a4:	81 95       	neg	r24
+  a6:	80 93 60 00 	sts	0x0060, r24	; 0x800060 <__DATA_REGION_ORIGIN__>
 	}
-	// kan maks scale OCR0A*brightness = 255 => brightness = 255/OCR0A
-	// Oppdater duty cycle
-	OCR0B = (OCR0A * brightness) / 255; // Duty cycle i prosent av OCR0A
-  fa:	89 b5       	in	r24, 0x29	; 41
-  fc:	60 91 62 00 	lds	r22, 0x0062	; 0x800062 <__data_end>
- 100:	70 e0       	ldi	r23, 0x00	; 0
- 102:	90 e0       	ldi	r25, 0x00	; 0
- 104:	14 d0       	rcall	.+40     	; 0x12e <__mulhi3>
- 106:	6f ef       	ldi	r22, 0xFF	; 255
- 108:	70 e0       	ldi	r23, 0x00	; 0
- 10a:	22 d0       	rcall	.+68     	; 0x150 <__divmodhi4>
- 10c:	68 bd       	out	0x28, r22	; 40
+
+	// Oppdater PWM duty cycle
+	OCR0A = brightness;
+  aa:	80 91 62 00 	lds	r24, 0x0062	; 0x800062 <__data_end>
+  ae:	89 bd       	out	0x29, r24	; 41
 }
- 10e:	ff 91       	pop	r31
- 110:	ef 91       	pop	r30
- 112:	bf 91       	pop	r27
- 114:	af 91       	pop	r26
- 116:	9f 91       	pop	r25
- 118:	8f 91       	pop	r24
- 11a:	7f 91       	pop	r23
- 11c:	6f 91       	pop	r22
- 11e:	5f 91       	pop	r21
- 120:	3f 91       	pop	r19
- 122:	2f 91       	pop	r18
- 124:	0f 90       	pop	r0
- 126:	0f be       	out	0x3f, r0	; 63
- 128:	0f 90       	pop	r0
- 12a:	1f 90       	pop	r1
- 12c:	18 95       	reti
+  b0:	9f 91       	pop	r25
+  b2:	8f 91       	pop	r24
+  b4:	0f 90       	pop	r0
+  b6:	0f be       	out	0x3f, r0	; 63
+  b8:	0f 90       	pop	r0
+  ba:	1f 90       	pop	r1
+  bc:	18 95       	reti
 
-0000012e <__mulhi3>:
- 12e:	00 24       	eor	r0, r0
- 130:	55 27       	eor	r21, r21
- 132:	04 c0       	rjmp	.+8      	; 0x13c <__mulhi3+0xe>
- 134:	08 0e       	add	r0, r24
- 136:	59 1f       	adc	r21, r25
- 138:	88 0f       	add	r24, r24
- 13a:	99 1f       	adc	r25, r25
- 13c:	00 97       	sbiw	r24, 0x00	; 0
- 13e:	29 f0       	breq	.+10     	; 0x14a <__mulhi3+0x1c>
- 140:	76 95       	lsr	r23
- 142:	67 95       	ror	r22
- 144:	b8 f3       	brcs	.-18     	; 0x134 <__mulhi3+0x6>
- 146:	71 05       	cpc	r23, r1
- 148:	b9 f7       	brne	.-18     	; 0x138 <__mulhi3+0xa>
- 14a:	80 2d       	mov	r24, r0
- 14c:	95 2f       	mov	r25, r21
- 14e:	08 95       	ret
+000000be <_exit>:
+  be:	f8 94       	cli
 
-00000150 <__divmodhi4>:
- 150:	97 fb       	bst	r25, 7
- 152:	07 2e       	mov	r0, r23
- 154:	16 f4       	brtc	.+4      	; 0x15a <__divmodhi4+0xa>
- 156:	00 94       	com	r0
- 158:	06 d0       	rcall	.+12     	; 0x166 <__divmodhi4_neg1>
- 15a:	77 fd       	sbrc	r23, 7
- 15c:	08 d0       	rcall	.+16     	; 0x16e <__divmodhi4_neg2>
- 15e:	0b d0       	rcall	.+22     	; 0x176 <__udivmodhi4>
- 160:	07 fc       	sbrc	r0, 7
- 162:	05 d0       	rcall	.+10     	; 0x16e <__divmodhi4_neg2>
- 164:	3e f4       	brtc	.+14     	; 0x174 <__divmodhi4_exit>
-
-00000166 <__divmodhi4_neg1>:
- 166:	90 95       	com	r25
- 168:	81 95       	neg	r24
- 16a:	9f 4f       	sbci	r25, 0xFF	; 255
- 16c:	08 95       	ret
-
-0000016e <__divmodhi4_neg2>:
- 16e:	70 95       	com	r23
- 170:	61 95       	neg	r22
- 172:	7f 4f       	sbci	r23, 0xFF	; 255
-
-00000174 <__divmodhi4_exit>:
- 174:	08 95       	ret
-
-00000176 <__udivmodhi4>:
- 176:	aa 1b       	sub	r26, r26
- 178:	bb 1b       	sub	r27, r27
- 17a:	51 e1       	ldi	r21, 0x11	; 17
- 17c:	07 c0       	rjmp	.+14     	; 0x18c <__udivmodhi4_ep>
-
-0000017e <__udivmodhi4_loop>:
- 17e:	aa 1f       	adc	r26, r26
- 180:	bb 1f       	adc	r27, r27
- 182:	a6 17       	cp	r26, r22
- 184:	b7 07       	cpc	r27, r23
- 186:	10 f0       	brcs	.+4      	; 0x18c <__udivmodhi4_ep>
- 188:	a6 1b       	sub	r26, r22
- 18a:	b7 0b       	sbc	r27, r23
-
-0000018c <__udivmodhi4_ep>:
- 18c:	88 1f       	adc	r24, r24
- 18e:	99 1f       	adc	r25, r25
- 190:	5a 95       	dec	r21
- 192:	a9 f7       	brne	.-22     	; 0x17e <__udivmodhi4_loop>
- 194:	80 95       	com	r24
- 196:	90 95       	com	r25
- 198:	bc 01       	movw	r22, r24
- 19a:	cd 01       	movw	r24, r26
- 19c:	08 95       	ret
-
-0000019e <_exit>:
- 19e:	f8 94       	cli
-
-000001a0 <__stop_program>:
- 1a0:	ff cf       	rjmp	.-2      	; 0x1a0 <__stop_program>
+000000c0 <__stop_program>:
+  c0:	ff cf       	rjmp	.-2      	; 0xc0 <__stop_program>

@@ -9,51 +9,41 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#define F_CPU 4000000UL // Set CPU-frekvensen til 1 MHz
+#define F_CPU 4000000UL 
 
-volatile uint8_t brightness = 0;  // Duty cycle for PWM (0-1000)
+volatile uint8_t brightness = 0;  // Duty cycle som ein prosentdel av OCR0A
 volatile int8_t step = 1;         // Endringssteg for fading (+ eller -)
 
 int main(void)
 {
-    // Sett PB1 (OC0B) som utgang
-    DDRB |= (1 << DDB1);
+	// Sett PB0 som utgang
+	DDRB |= (1 << DDB0);
 
-    // Konfigurer Timer0 i Fast PWM, TOP = OCR0A (Mode 7)
-    TCCR0A |= (1 << WGM00) | (1 << WGM01); // Fast PWM
-    TCCR0A |= (1 << COM0B1);               // Clear OC0B on Compare Match
-    TCCR0B |= (1 << WGM02);                // TOP = OCR0A
-    TCCR0B |= (1 << CS02) | (1 << CS00);   // Prescaler = 1024
+	TCCR0A |= (1 << WGM00) | (1 << WGM01); // Fast PWM-modus
+	TCCR0A |= (1 << COM0A1);               // Clear OC0A på sammenligning, sett på topp
+	TCCR0B |= (1 << CS01);                 // Sett prescaler til 8 (4 MHz / 8 = 500 kHz PWM)
 
-    // Sett toppverdi for 50 Hz frekvens
-    OCR0A = 3; // for 50Hz: f_clk / (prescaler * PWM_freq) - 1 = 3906 / 50 - 1 = 77
+	// Aktiver interrupt på Timer0 overflow
+	TIMSK |= (1 << TOIE0);
 
-    // Sett initial duty cycle
-    OCR0B = 0;
+	sei();
 
-    // Aktiver overflow interrupt
-    TIMSK |= (1 << TOIE0);
-
-    // Aktiver globale interrupt
-    sei();
-
-    while (1)
-    {
-        // Hovudløkka kan vere tom – fading skjer i interrupt
-    }
+	while (1)
+	{
+		// Hovudløkka gjer ingenting – 
+	}
 }
 
 ISR(TIMER0_OVF_vect)
 {
-	// Endre lysstyrken gradvis
-	brightness += step;
+	brightness += step; // Endre lysstyrken
 
-	// Snu retning ved topp eller bunn
-	if (brightness == 0 || brightness >= (255/OCR0A)*255)
+	// Sjekk for topp eller bunn av duty cycle
+	if (brightness == 0 || brightness == 255)
 	{
-		step = -step;
+		step = -step; 
 	}
-	// kan maks scale OCR0A*brightness = 255 => brightness = 255/OCR0A
-	// Oppdater duty cycle
-	OCR0B = (OCR0A * brightness) / 255; // Duty cycle i prosent av OCR0A
+
+	// Oppdater PWM duty cycle
+	OCR0A = brightness;
 }
