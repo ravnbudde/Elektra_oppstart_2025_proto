@@ -31,6 +31,7 @@ void i2c_stop_condition(void){
 }
 
 uint8_t i2c_recieve_ack(void){
+	//Bør legge til så den returnerer 0 om den leser en 0
 	DDRB &= ~(1<<DDB0); //Sett SDA som input
 	USISR |= (1<<USICNT3) | (1<<USICNT2) | (1<<USICNT1); //Sett counter til 1110 så ovf er etter 1 bit
 
@@ -43,9 +44,10 @@ uint8_t i2c_recieve_ack(void){
 }
 
 void i2c_send_byte(uint8_t data){
-	USIDR = data; //Gjør klar adressen som skal sendes
+	USIDR = data; //Gjør klar data som skal sendes
 
-	//Note: klokka teller 1 hver gang USITC blir satt til 1, altså teller klokka 2 per egentlige klokkesignal (teller edges), bruker derfor 16 increments
+	//Note: klokka teller 1 hver gang USITC blir satt til 1, altså teller klokka 2 per egentlige klokkesignal (teller edges), bruker derfor 16 increments (tror jeg med strek under tror)
+	//Tror også ATtinyen automatisk sender neste bit i USIDR register når SCL blir satt lav da den er init som master
 	while(!(USISR & (1<<USIOIF))){ //så før overflow (4bit => når klokka går fra 15 til 0)
 		USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount
 		while((PINB & (1<<PB2))); //Vent til SCL faktisk er høy (kan bli holdt lav av slave om klokken går for fort for den)
@@ -58,7 +60,6 @@ void i2c_send_byte(uint8_t data){
 
 void i2c_write(uint8_t addr, uint8_t data){
 	uint8_t acked = 0;
-	//Husk at når adresse sendes er den 7 bit + read/write
 	i2c_start_condition();
 	while(!(USISR & (1<<USISIF))); //Vent til start-condition flag blir satt (WaitTilBitIsCleared)
 	USISR |= (1<<USISIF); //Clear flagget
