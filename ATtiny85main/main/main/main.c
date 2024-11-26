@@ -28,6 +28,7 @@ int main(void)
 	TIMSK |= (1 << TOIE0);
 	
 	//eks på I2C sending. 
+	init_timer1();
 	init_i2c_master();
 	uint8_t address = 69;
 	uint8_t buffer[2];

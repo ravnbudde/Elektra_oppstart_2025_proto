@@ -19,13 +19,15 @@ void init_i2c_master(void){
 
 void i2c_start_condition(void){
 	PORTB &= ~(1<<SDA); //sett SDA lav
-	//Må få brukt en timer til å lage delay her, 5ms ellerno?
+	delay_4ms();
 	PORTB &= ~(1<<SCL); //Sett SCL lav
+	delay_4ms();
 }
 void i2c_stop_condition(void){
 	PORTB |= (1<<SCL); //sett SCL høy
-	//delay
+	delay_4ms();
 	PORTB |= (1<<SDA); //sett SDA høy
+	delay_4ms();
 }
 
 uint8_t i2c_recieve_ack(void){
@@ -34,9 +36,9 @@ uint8_t i2c_recieve_ack(void){
 
 	USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount
 	while((PINB & (1<<PB2))); //Vent til SCL faktisk er høy (kan bli holdt lav av slave om klokken går for fort for den)
-	//Delay?
+	delay_4ms();
 	USICR |= (1<<USITC); //Tror denne bare toggler klokka, så her vil den bli satt lav igjen
-	//Litta delay til
+	delay_4ms();
 	return 1;
 }
 
@@ -47,9 +49,9 @@ void i2c_send_byte(uint8_t data){
 	while(!(USISR & (1<<USIOIF))){ //så før overflow (4bit => når klokka går fra 15 til 0)
 		USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount
 		while((PINB & (1<<PB2))); //Vent til SCL faktisk er høy (kan bli holdt lav av slave om klokken går for fort for den)
-		//Delay?
+		delay_4ms();
 		USICR |= (1<<USITC); //Tror denne bare toggler klokka, så her vil den bli satt lav igjen
-		//Litta delay til
+		delay_4ms();
 	}
 	USISR |= (1<<USIOIF); //Skru av overflow flagget
 }
@@ -85,9 +87,9 @@ uint8_t i2c_read_byte(uint8_t send_ack) {
 	while (!(USISR & (1 << USIOIF))) {  // Vent til alle bits er mottatt
 		USICR |= (1 << USITC);          // Sett SCL høy
 		while (!(PINB & (1 << PB2)));   // Vent til SCL faktisk er høy
-		//delay
+		delay_4ms();
 		USICR |= (1 << USITC);          // Sett SCL lav
-		//delay
+		delay_4ms();
 	}
 
 	received_data = USIDR;  // Les innholdet i dataregisteret
@@ -102,9 +104,9 @@ uint8_t i2c_read_byte(uint8_t send_ack) {
 	USISR = (1 << USICNT3) | (1 << USICNT2) | (1 << USICNT1);  // 1 klokkesyklus for ACK/NACK
 	USICR |= (1 << USITC);              // Sett SCL høy
 	while (!(PINB & (1 << PB2)));       // Vent til SCL faktisk er høy
-	//delay
+	delay_4ms();
 	USICR |= (1 << USITC);              // Sett SCL lav
-	//delay?
+	delay_4ms();
 
 	return received_data;
 }

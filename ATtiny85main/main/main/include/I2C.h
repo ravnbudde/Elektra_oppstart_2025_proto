@@ -11,6 +11,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "Timer1.h"
 
 #define SDA PB0 
 #define SCL PB2 
