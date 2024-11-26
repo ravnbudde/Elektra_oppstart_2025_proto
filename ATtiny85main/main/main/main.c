@@ -15,6 +15,7 @@
 volatile uint8_t brightness = 0;  // Duty cycle som ein prosentdel av OCR0A
 volatile int8_t step = 1;         // Endringssteg for fading (+ eller -)
 
+// legg til  -Ulfuse:w:0xE2:m i deply for å fuse intern klokke 8MHz
 int main(void)
 {
 	// Sett PB0 som utgang
