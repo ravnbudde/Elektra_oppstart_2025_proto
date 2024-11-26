@@ -15,6 +15,7 @@
 
 #define SDA PB0 
 #define SCL PB2 
+#define ADR 0x29 //Standard adresse til VL53L1X
 
 /*NB: 
 	litt usikker her p? om int flaggene i USISR faktisk leses som 1 eller 0 n?r de er flagga (tror 1, er bare forvirrende at man ogs? skriver 1 til de for ? cleare)?? m? sjekkes
