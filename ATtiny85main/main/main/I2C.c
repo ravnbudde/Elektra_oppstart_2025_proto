@@ -6,6 +6,15 @@
  */ 
 #include "include/I2C.h"
 
+/*
+NB:
+ca 63.75 us 'hold' på klokkesignalet. Det vil si bitrate frekvens: ~7.8kHz. Litt treigt, kan evt gjøres raskere med CTC mode om nødvendig
+Men en melding + respons (8 addr, 2 ack, 8 data, 2 stop bit) er 20 bits så det holder til nesten 400 meldinger i sekundet
+Bør derfor være mer enn nok
+(1 melding med svar tar ca 2.5ms. Om LiDARen roterer 360 grader per sekund vil det si vi kan få unik måling for hver grad give or take)
+Om vi skal bruke ATtinyen til noe mer enn en DAC burde hastigheten økes for å frigjøre blocking-tid
+*/
+
 void init_i2c_master(void){
 	//Husk pullup-resistor på SDA og SCL linjene!!!
 	//Side 112 i datasheet
@@ -19,15 +28,15 @@ void init_i2c_master(void){
 
 void i2c_start_condition(void){
 	PORTB &= ~(1<<SDA); //sett SDA lav
-	delay_4ms();
+	delay_60us();
 	PORTB &= ~(1<<SCL); //Sett SCL lav
-	delay_4ms();
+	delay_60us();
 }
 void i2c_stop_condition(void){
 	PORTB |= (1<<SCL); //sett SCL høy
-	delay_4ms();
+	delay_60us();
 	PORTB |= (1<<SDA); //sett SDA høy
-	delay_4ms();
+	delay_60us();
 }
 
 uint8_t i2c_recieve_ack(void){
@@ -37,9 +46,9 @@ uint8_t i2c_recieve_ack(void){
 
 	USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount
 	while((PINB & (1<<PB2))); //Vent til SCL faktisk er høy (kan bli holdt lav av slave om klokken går for fort for den)
-	delay_4ms();
+	delay_60us();
 	USICR |= (1<<USITC); //Tror denne bare toggler klokka, så her vil den bli satt lav igjen
-	delay_4ms();
+	delay_60us();
 	return 1;
 }
 
@@ -51,9 +60,9 @@ void i2c_send_byte(uint8_t data){
 	while(!(USISR & (1<<USIOIF))){ //så før overflow (4bit => når klokka går fra 15 til 0)
 		USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount
 		while((PINB & (1<<PB2))); //Vent til SCL faktisk er høy (kan bli holdt lav av slave om klokken går for fort for den)
-		delay_4ms();
+		delay_60us();
 		USICR |= (1<<USITC); //Tror denne bare toggler klokka, så her vil den bli satt lav igjen
-		delay_4ms();
+		delay_60us();
 	}
 	USISR |= (1<<USIOIF); //Skru av overflow flagget
 }
@@ -88,9 +97,9 @@ uint8_t i2c_read_byte(uint8_t send_ack) {
 	while (!(USISR & (1 << USIOIF))) {  // Vent til alle bits er mottatt
 		USICR |= (1 << USITC);          // Sett SCL høy
 		while (!(PINB & (1 << PB2)));   // Vent til SCL faktisk er høy
-		delay_4ms();
+		delay_60us();
 		USICR |= (1 << USITC);          // Sett SCL lav
-		delay_4ms();
+		delay_60us();
 	}
 
 	received_data = USIDR;  // Les innholdet i dataregisteret
@@ -105,9 +114,9 @@ uint8_t i2c_read_byte(uint8_t send_ack) {
 	USISR = (1 << USICNT3) | (1 << USICNT2) | (1 << USICNT1);  // 1 klokkesyklus for ACK/NACK
 	USICR |= (1 << USITC);              // Sett SCL høy
 	while (!(PINB & (1 << PB2)));       // Vent til SCL faktisk er høy
-	delay_4ms();
+	delay_60us();
 	USICR |= (1 << USITC);              // Sett SCL lav
-	delay_4ms();
+	delay_60us();
 
 	return received_data;
 }

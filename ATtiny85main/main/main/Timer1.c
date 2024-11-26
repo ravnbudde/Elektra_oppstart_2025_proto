@@ -14,16 +14,13 @@ void init_timer1(void){
 	
 }
 
-void delay_4ms(void){
+void delay_60us(void){
 	TCNT1 = 0;
-	TCCR1 |= (1<<CS12) | (1<<CS11) | (1<<CS10); //Skru på klokke med 64 prescale
+	TCCR1 |= (1<<CS10); //Skru på klokke med 1 prescale
 	
 	while(!(TIFR & (1<<TOV1))); //Vent på en ovf
 	
-	//Skru av klokka
-	TCCR1 &= ~(1<<CS12);
-	TCCR1 &= ~(1<<CS11);
-	TCCR1 &= ~(1<<CS10);
+	TCCR1 &= ~(1<<CS10); //Skru av klokka
 	
 	return;
 }

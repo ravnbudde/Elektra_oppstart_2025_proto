@@ -17,7 +17,7 @@
 #define OVFFREQ F_CPU/(255*TC1PS) //med instillinger over gir dette ~4ms tid, bør være mer enn nok
 
 void init_timer1(void);
-void delay_4ms(void);
+void delay_60us(void);
 
 
 #endif /* TIMER1_H_ */
