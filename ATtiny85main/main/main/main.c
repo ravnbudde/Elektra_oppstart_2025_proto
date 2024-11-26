@@ -26,6 +26,13 @@ int main(void)
 
 	// Aktiver interrupt på Timer0 overflow
 	TIMSK |= (1 << TOIE0);
+	
+	//eks på I2C sending. 
+	init_i2c_master();
+	uint8_t address = 69;
+	uint8_t buffer[2];
+	i2c_read(address, buffer, 2);
+	
 
 	sei();
 
