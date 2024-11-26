@@ -16,6 +16,8 @@ volatile uint8_t brightness = 0;  // Duty cycle som ein prosentdel av OCR0A
 volatile int8_t step = 1;         // Endringssteg for fading (+ eller -)
 
 // legg til  -Ulfuse:w:0xE2:m i deply for å fuse intern klokke 8MHz
+// (Tror) det egt er unødvendig. når vi burner bootloader gjennom arduinoen tror jeg den gjør det siden vi har valgt intern 8MHz klokke der
+// Intern klokke funker hvertfal fint for meg uten at jeg fuser i atmel også
 int main(void)
 {
 	///*Skru av watchdogTimer*/
