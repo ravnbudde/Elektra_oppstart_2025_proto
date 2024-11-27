@@ -65,3 +65,55 @@ int main() {
 
 	return 0;
 }
+
+/*
+#include <Wire.h>
+
+// Globale variabler
+volatile uint8_t sequenceNumber = 0; // Sekvensnummer som skal sendes tilbake
+
+void setup() {
+	// Start I2C som slave med adresse 0x08
+	Wire.begin(0x08);
+
+	// Konfigurer callback-funksjoner
+	Wire.onReceive(receiveEvent); // Kalles når data mottas fra master
+	Wire.onRequest(requestEvent); // Kalles når master ber om data
+
+	// Start Serial Monitor for debugging
+	Serial.begin(9600);
+	while (!Serial) {
+		; // Vent til Serial er klar
+	}
+
+	Serial.println("Arduino Due er klar som I2C-slave på adresse 0x08.");
+}
+
+void loop() {
+	// Hovedløkken gjør ingenting; alt håndteres i interrupt-callbacks
+	delay(100);
+}
+
+// Callback når data mottas fra master
+void receiveEvent(int numBytes) {
+	// Les innkommende data fra master
+	while (Wire.available()) {
+		char receivedByte = Wire.read();
+		Serial.print("Mottok data fra master: ");
+		Serial.println(receivedByte);
+	}
+}
+
+// Callback når master ber om data
+void requestEvent() {
+	// Send sekvensnummer til master
+	Wire.write(sequenceNumber);
+
+	// Debug info til Serial Monitor
+	Serial.print("Sendte sekvensnummer: ");
+	Serial.println(sequenceNumber);
+
+	// Oppdater sekvensnummer for neste forespørsel
+	sequenceNumber++;
+}
+*/
