@@ -14,12 +14,12 @@ void init_timer1(void){
 	
 }
 
-void delay_60us(void){
+void delay_32us(void){
 	TCNT1 = 0;
 	TCCR1 |= (1<<CS10); //Skru på klokke med 1 prescale
 	
-	while(!(TIFR & (1<<TOV1))); //Vent på en ovf
-	
+	while((TIFR & (1<<TOV1))); //Vent på en ovf Litt usikker på om denne faktisk fungerer?? må sjekkes med oscilloskop
+	TIFR |= (1<<TOV1); //Reset flag
 	TCCR1 &= ~(1<<CS10); //Skru av klokka
 	
 	return;

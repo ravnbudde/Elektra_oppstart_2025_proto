@@ -28,15 +28,15 @@ void init_i2c_master(void){
 
 void i2c_start_condition(void){
 	PORTB &= ~(1<<SDA); //sett SDA lav
-	delay_60us();
+	delay_32us();
 	PORTB &= ~(1<<SCL); //Sett SCL lav
-	delay_60us();
+	delay_32us();
 }
 void i2c_stop_condition(void){
 	PORTB |= (1<<SCL); //sett SCL høy
-	delay_60us();
+	delay_32us();
 	PORTB |= (1<<SDA); //sett SDA høy
-	delay_60us();
+	delay_32us();
 }
 
 uint8_t i2c_recieve_ack(void){
@@ -46,23 +46,25 @@ uint8_t i2c_recieve_ack(void){
 
 	USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount
 	while((PINB & (1<<PB2))); //Vent til SCL faktisk er høy (kan bli holdt lav av slave om klokken går for fort for den)
-	delay_60us();
+	delay_32us();
 	USICR |= (1<<USITC); //Tror denne bare toggler klokka, så her vil den bli satt lav igjen
-	delay_60us();
+	delay_32us();
 	return 1;
 }
 
 void i2c_send_byte(uint8_t data){
+	
+	
 	USIDR = data; //Gjør klar data som skal sendes
 
 	//Note: klokka teller 1 hver gang USITC blir satt til 1, altså teller klokka 2 per egentlige klokkesignal (teller edges), bruker derfor 16 increments (tror jeg med strek under tror)
 	//Tror også ATtinyen automatisk sender neste bit i USIDR register når SCL blir satt lav da den er init som master
 	while(!(USISR & (1<<USIOIF))){ //så før overflow (4bit => når klokka går fra 15 til 0)
-		USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount
+		USICR |= (1<<USITC); //Skrur SCL høy og øker klokkecount	
 		while((PINB & (1<<PB2))); //Vent til SCL faktisk er høy (kan bli holdt lav av slave om klokken går for fort for den)
-		delay_60us();
+		delay_32us();
 		USICR |= (1<<USITC); //Tror denne bare toggler klokka, så her vil den bli satt lav igjen
-		delay_60us();
+		delay_32us();
 	}
 	USISR |= (1<<USIOIF); //Skru av overflow flagget
 }
@@ -97,9 +99,9 @@ uint8_t i2c_read_byte(uint8_t send_ack) {
 	while (!(USISR & (1 << USIOIF))) {  // Vent til alle bits er mottatt
 		USICR |= (1 << USITC);          // Sett SCL høy
 		while (!(PINB & (1 << PB2)));   // Vent til SCL faktisk er høy
-		delay_60us();
+		delay_32us();
 		USICR |= (1 << USITC);          // Sett SCL lav
-		delay_60us();
+		delay_32us();
 	}
 
 	received_data = USIDR;  // Les innholdet i dataregisteret
@@ -114,9 +116,9 @@ uint8_t i2c_read_byte(uint8_t send_ack) {
 	USISR = (1 << USICNT3) | (1 << USICNT2) | (1 << USICNT1);  // 1 klokkesyklus for ACK/NACK
 	USICR |= (1 << USITC);              // Sett SCL høy
 	while (!(PINB & (1 << PB2)));       // Vent til SCL faktisk er høy
-	delay_60us();
+	delay_32us();
 	USICR |= (1 << USITC);              // Sett SCL lav
-	delay_60us();
+	delay_32us();
 
 	return received_data;
 }
