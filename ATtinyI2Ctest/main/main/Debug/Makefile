@@ -39,6 +39,7 @@ SUBDIRS :=
 C_SRCS +=  \
 ../ds1307.c \
 ../i2c.c \
+../i2c_primary.c \
 ../main.c \
 ../Timer.c
 
@@ -52,24 +53,28 @@ ASM_SRCS +=
 OBJS +=  \
 ds1307.o \
 i2c.o \
+i2c_primary.o \
 main.o \
 Timer.o
 
 OBJS_AS_ARGS +=  \
 ds1307.o \
 i2c.o \
+i2c_primary.o \
 main.o \
 Timer.o
 
 C_DEPS +=  \
 ds1307.d \
 i2c.d \
+i2c_primary.d \
 main.d \
 Timer.d
 
 C_DEPS_AS_ARGS +=  \
 ds1307.d \
 i2c.d \
+i2c_primary.d \
 main.d \
 Timer.d
 
@@ -95,6 +100,13 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./i2c.o: .././i2c.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATtiny_DFP\1.3.229\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=attiny85 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATtiny_DFP\1.3.229\gcc\dev\attiny85" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+./i2c_primary.o: .././i2c_primary.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATtiny_DFP\1.3.229\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=attiny85 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATtiny_DFP\1.3.229\gcc\dev\attiny85" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

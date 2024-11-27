@@ -132,6 +132,12 @@
     <Compile Include="i2c.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="i2c_primary.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="i2c_primary.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
