@@ -14,7 +14,6 @@
  *  Author: ravneb
  */ 
 
-#include <xc.h>
 #include <avr/io.h>
 #include <stdio.h>
 #define F_CPU 8000000UL 
@@ -73,12 +72,17 @@ int main() {
 		read_word = 0x00;
 		i2c_start();
 		// BUTTON DEVICE (0xBA for write, 0xBB for read)
-		if (!i2c_write_address(LASER_ADDRESS, READ)) { // read address
+		if (i2c_write_address(LASER_ADDRESS, READ)) { // read address
 			//error_loop();
 			data += 10; 
 			i2c_read_byte(0);
 		}
+		
 	
+		i2c_stop();
+		i2c_start();
+		i2c_write_address(LASER_ADDRESS, WRITE);
+		i2c_write_byte(69);
 		i2c_stop();
 		
 		
