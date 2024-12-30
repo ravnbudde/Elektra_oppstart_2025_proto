@@ -4,11 +4,24 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "driver/gpio.h"
+#include "driver/uart.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 
-
 static const char *TAG = "LIDAR";
+
+// Aktiver eller deaktiver debug mode
+#define DEBUG_MODE // Kommenter ut for å deaktivere debug logging
+
+#ifdef DEBUG_MODE
+    #define DEBUG_LOGI(tag, format, ...) ESP_LOGI(tag, "[INFO]: " format, ##__VA_ARGS__)
+    #define DEBUG_LOGW(tag, format, ...) ESP_LOGW(tag, "[WARN]: " format, ##__VA_ARGS__)
+    #define DEBUG_LOGE(tag, format, ...) ESP_LOGE(tag, "[ERROR]: " format, ##__VA_ARGS__)
+#else
+    #define DEBUG_LOGI(tag, format, ...) // Ingen logging
+    #define DEBUG_LOGW(tag, format, ...) // Ingen logging
+    #define DEBUG_LOGE(tag, format, ...) // Ingen logging
+#endif
 
 // Definer pinnar for ultralydsensoren og motoren
 #define MOTOR_CONTROL_PIN GPIO_NUM_11
@@ -17,6 +30,9 @@ static const char *TAG = "LIDAR";
 #define PULSE_PIN GPIO_NUM_2
 #define CENTER_SWITCH_PIN GPIO_NUM_0 // brown
 #define DEGREES_PER_TICK 0.3515625*8
+
+#define UART_NUM UART_NUM_1
+#define BUF_SIZE 1024
 
 // Globale variablar
 volatile float motor_position = 0.0; // Motorens nåværende posisjon i grader
@@ -71,7 +87,7 @@ void IRAM_ATTR onCenterSwitch() {
 
 // Funksjon for å kalibrere motoren
 void calibrate_motor() {
-    ESP_LOGI(TAG, "Kalibrerer motor...");
+    DEBUG_LOGI(TAG, "Kalibrerer motor...");
 
     // Start motoren
     gpio_set_level(MOTOR_CONTROL_PIN, 0);
@@ -87,13 +103,13 @@ void calibrate_motor() {
     vTaskDelay(50 / portTICK_PERIOD_MS);
     gpio_set_level(MOTOR_CONTROL_PIN, 1);
 
-    ESP_LOGI(TAG, "Kalibrering fullført. Motor posisjon satt til 0.");
+    DEBUG_LOGI(TAG, "Kalibrering fullført. Motor posisjon satt til 0.");
     motor_position = 0.0;
 }
 
 // Funksjon for å starte motoren
 void start_motor() {
-    ESP_LOGI(TAG, "Starter motor...");
+    DEBUG_LOGI(TAG, "Starter motor...");
 
     if (!motor_state) {
         gpio_set_level(MOTOR_CONTROL_PIN, 0);
@@ -110,19 +126,19 @@ void start_motor() {
         }
 
         if (motor_running) {
-            ESP_LOGI(TAG, "Motoren starta korrekt.");
+            DEBUG_LOGI(TAG, "Motoren starta korrekt.");
             motor_state = true;
         } else {
-            ESP_LOGW(TAG, "Motoren starta ikkje.");
+            DEBUG_LOGW(TAG, "Motoren starta ikkje.");
         }
     } else {
-        ESP_LOGW(TAG, "Motoren er allerede på.");
+        DEBUG_LOGW(TAG, "Motoren er allerede på.");
     }
 }
 
 // Funksjon for å stoppe motoren
 void stop_motor() {
-    ESP_LOGI(TAG, "Stoppar motor...");
+    DEBUG_LOGI(TAG, "Stoppar motor...");
 
     if (motor_state) {
         gpio_set_level(MOTOR_CONTROL_PIN, 0);
@@ -139,13 +155,13 @@ void stop_motor() {
         }
 
         if (motor_stopped) {
-            ESP_LOGI(TAG, "Motoren stoppa korrekt.");
+            DEBUG_LOGI(TAG, "Motoren stoppa korrekt.");
             motor_state = false;
         } else {
-            ESP_LOGW(TAG, "Motoren stoppa ikkje.");
+            DEBUG_LOGW(TAG, "Motoren stoppa ikkje.");
         }
     } else {
-        ESP_LOGW(TAG, "Motoren er allerede av.");
+        DEBUG_LOGW(TAG, "Motoren er allerede av.");
     }
 }
 
@@ -154,7 +170,7 @@ void ultrasonicTask(void *pvParameters) {
     while (1) {
         float distance = measureDistance();
         if (distance < 0) {
-            ESP_LOGW(TAG, "Timeout during distance measurement");
+            DEBUG_LOGW(TAG, "Timeout during distance measurement");
             continue;
         }
 
@@ -162,12 +178,24 @@ void ultrasonicTask(void *pvParameters) {
         float position = motor_position;
         xSemaphoreGive(motorSemaphore);
 
-        ESP_LOGI(TAG, "Vinkel: %.2f°, Avstand: %.2f cm", position, distance);
+        DEBUG_LOGI(TAG, "Angle: %.2f, Distance: %.2f", position, distance);
+
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 
 void app_main(void) {
+    // UART-konfigurasjon
+    const uart_config_t uart_config = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    };
+    uart_param_config(UART_NUM, &uart_config);
+    uart_driver_install(UART_NUM, BUF_SIZE, BUF_SIZE, 0, NULL, 0);
+
     gpio_reset_pin(TRIG_PIN);
     gpio_reset_pin(ECHO_PIN);
     gpio_reset_pin(MOTOR_CONTROL_PIN);
@@ -186,7 +214,7 @@ void app_main(void) {
     gpio_set_intr_type(PULSE_PIN, GPIO_INTR_NEGEDGE);
     gpio_set_intr_type(CENTER_SWITCH_PIN, GPIO_INTR_NEGEDGE);
 
-    ESP_LOGI(TAG, "System initialized");
+    DEBUG_LOGI(TAG, "System initialized");
 
     motorSemaphore = xSemaphoreCreateMutex();
 
@@ -200,3 +228,26 @@ void app_main(void) {
 
     xTaskCreate(ultrasonicTask, "Ultrasonic Task", 2048, NULL, 1, NULL);
 }
+
+/* Python script for extracting and printing INFO logs from UART
+import serial
+
+# Configure the serial port
+ser = serial.Serial('COM12', baudrate=115200, timeout=1)
+
+print("Listening on COM12...")
+try:
+    while True:
+        raw_data = ser.readline()  # Read a line from UART
+        if raw_data:
+            decoded_data = raw_data.decode('ascii', errors='replace').strip()
+            if decoded_data.startswith("[INFO]: "):
+                # Extract the actual message
+                clean_data = decoded_data.replace("[INFO]: ", "", 1)
+                print(f"INFO message: {clean_data}")
+            else:
+                print(f"Ignored message: {decoded_data}")
+except KeyboardInterrupt:
+    print("Exiting program.")
+    ser.close()
+*/
