@@ -183,6 +183,34 @@ void ultrasonicTask(void *pvParameters) {
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
+// Funksjon for å lytte etter kommandoer over UART
+void uartCommandTask(void *pvParameters) {
+    uint8_t data[BUF_SIZE];
+    while (1) {
+        int length = uart_read_bytes(UART_NUM, data, BUF_SIZE, 20 / portTICK_RATE_MS);
+        if (length > 0) {
+            data[length] = '\0'; // Null-terminer stringen
+            if (strstr((char *)data, "START") != NULL) {
+                DEBUG_LOGI(TAG, "Mottok kommando: START");
+                start_motor();
+            } else if (strstr((char *)data, "STOP") != NULL) {
+                DEBUG_LOGI(TAG, "Mottok kommando: STOP");
+                stop_motor();
+            } else if (strcmp((char *)data, "\n") == 0) {
+                if (motor_state) {
+                    DEBUG_LOGI(TAG, "Mottok kommando: STOP via Enter");
+                    stop_motor();
+                } else {
+                    DEBUG_LOGI(TAG, "Mottok kommando: START via Enter");
+                    start_motor();
+                }
+            } else {
+                DEBUG_LOGW(TAG, "Ukjent kommando mottatt: %s", data);
+            }
+        }
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
 
 void app_main(void) {
     // UART-konfigurasjon
@@ -227,27 +255,136 @@ void app_main(void) {
     start_motor();
 
     xTaskCreate(ultrasonicTask, "Ultrasonic Task", 2048, NULL, 1, NULL);
+    xTaskCreate(uartCommandTask, "UART com Task", 2048, NULL, 1, NULL);
 }
 
 /* Python script for extracting and printing INFO logs from UART
 import serial
+import pygame
+import math
+import re
+import threading
+from collections import deque
 
-# Configure the serial port
+# Konfigurer UART
 ser = serial.Serial('COM12', baudrate=115200, timeout=1)
 
-print("Listening on COM12...")
-try:
+# Initialiser Pygame
+pygame.init()
+screen = pygame.display.set_mode((800, 800))
+pygame.display.set_caption("LiDAR Visualisering")
+font = pygame.font.SysFont("Arial", 20)
+
+# Fargar
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+
+# Sentrum av skjermen
+center_x, center_y = 400, 400
+scaling_factor = 10
+
+# Data og innstillinger
+data_points = deque(maxlen=500)  # Lagrer opp til 500 punkt
+filtered_points = {}  # Lagrer filtrerte punkt
+distance_limit = 100  # Maksimum avstand i cm
+alpha = 0.7  # Filterparameter
+lock = threading.Lock()  # For å sikre trådtrygg dataoppdatering
+show_points = True  # Bytt mellom punkter og linjer
+
+# Oppdateringsfunksjon for UART
+def read_uart():
+    global data_points, filtered_points
     while True:
-        raw_data = ser.readline()  # Read a line from UART
-        if raw_data:
-            decoded_data = raw_data.decode('ascii', errors='replace').strip()
-            if decoded_data.startswith("[INFO]: "):
-                # Extract the actual message
-                clean_data = decoded_data.replace("[INFO]: ", "", 1)
-                print(f"INFO message: {clean_data}")
-            else:
-                print(f"Ignored message: {decoded_data}")
-except KeyboardInterrupt:
-    print("Exiting program.")
-    ser.close()
+        try:
+            raw_data = ser.readline()
+            if raw_data:
+                decoded_data = raw_data.decode('ascii', errors='replace').strip()
+                if "[INFO]:" in decoded_data:
+                    # Match vinkel og avstand med regex
+                    match = re.search(r"Angle: ([\d\.]+), Distance: ([\d\.]+)", decoded_data)
+                    if match:
+                        angle = float(match.group(1))
+                        distance = float(match.group(2))
+
+                        # Print ut verdiane for feilsøking
+                        print(f"INFO: Angle: {angle}, Distance: {distance}")
+
+                        # Oppdater data for plotting om det er innan grensa
+                        if distance <= distance_limit:
+                            rad_angle = math.radians(angle + 90)
+                            x = center_x + distance * math.cos(rad_angle) * scaling_factor  # Skaler for skjerm
+                            y = center_y - distance * math.sin(rad_angle) * scaling_factor
+                            with lock:
+                                # Legg til punkt i rådata
+                                data_points.append((x, y))
+
+                                # Filtrering
+                                if angle in filtered_points:
+                                    prev_x, prev_y = filtered_points[angle]
+                                    filtered_x = alpha * prev_x + (1 - alpha) * x
+                                    filtered_y = alpha * prev_y + (1 - alpha) * y
+                                    filtered_points[angle] = (filtered_x, filtered_y)
+                                else:
+                                    filtered_points[angle] = (x, y)
+                else:
+                    print(f"Ignored message: {decoded_data}")
+        except Exception as e:
+            print(f"Error reading UART: {e}")
+            break
+
+# Start UART-oppdatering i eigen tråd
+threading.Thread(target=read_uart, daemon=True).start()
+
+# Hovudløkka
+running = True
+while running:
+    screen.fill(BLACK)
+
+    with lock:
+        if show_points:
+            # Tegn siste 100 punkt som blå
+            for point in list(data_points)[-100:]:
+                pygame.draw.circle(screen, BLUE, (int(point[0]), int(point[1])), 3)
+
+            # Tegn alle punkt som grøn
+            for point in list(data_points)[:-100]:
+                pygame.draw.circle(screen, GREEN, (int(point[0]), int(point[1])), 2)
+        else:
+            # Tegn linjer mellom filtrerte punkt
+            sorted_angles = sorted(filtered_points.keys())
+            for i in range(len(sorted_angles) - 1):
+                angle1 = sorted_angles[i]
+                angle2 = sorted_angles[i + 1]
+                x1, y1 = filtered_points[angle1]
+                x2, y2 = filtered_points[angle2]
+                pygame.draw.line(screen, YELLOW, (int(x1), int(y1)), (int(x2), int(y2)), 2)
+
+    # Tegn kontrollar
+    pygame.draw.rect(screen, BLUE, (10, 10, 100, 40))  # Reset-knapp
+    pygame.draw.rect(screen, BLUE, (120, 10, 140, 40))  # Bytt mellom punkter og linjer
+    screen.blit(font.render("Reset", True, WHITE), (20, 20))
+    screen.blit(font.render("Toggle View", True, WHITE), (130, 20))
+
+    # Eventhandtering
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = event.pos
+            if 10 <= mouse_x <= 110 and 10 <= mouse_y <= 50:  # Reset-knappen
+                with lock:
+                    data_points.clear()
+                    filtered_points.clear()
+            elif 120 <= mouse_x <= 260 and 10 <= mouse_y <= 50:  # Bytt mellom punkter og linjer
+                show_points = not show_points
+
+    pygame.display.flip()
+
+# Lukk programmet
+ser.close()
+pygame.quit()
+
 */
