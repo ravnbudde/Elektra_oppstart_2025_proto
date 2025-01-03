@@ -169,6 +169,11 @@ class LiDARVisualizer:
             for point in list(self.filtering.data_points)[:-100]:
                 pygame.draw.circle(self.screen, self.colors["old_points"], (int(point[0]), int(point[1])), 2)
 
+    def smooth_data(self, data, window_size=5):
+        if len(data) < window_size:
+            return data
+        return np.convolve(data, np.ones(window_size) / window_size, mode='same')
+    
     def draw_lines(self):
         with self.filtering.lock:
             points = list(self.filtering.filtered_points.values())
@@ -178,25 +183,38 @@ class LiDARVisualizer:
 
                 # Sorter punkta basert på vinkelen frå origo
                 points.sort(key=lambda p: math.atan2(p[1] - center[1], p[0] - center[0]))
-                
+
                 # Ekstrahere x og y-koordinatar
-                x_coords = [p[0] for p in points]
-                y_coords = [p[1] for p in points]
+                x_coords = np.array([p[0] for p in points])
+                y_coords = np.array([p[1] for p in points])
 
-                # Bruke numpy for interpolering
-                t = np.linspace(0, 1, len(points))  # Parametrisk t verdiar
-                t_interp = np.linspace(0, 1, len(points) * 10)  # Meir granular interpolering
+                # Glatt x og y-koordinatar
+                x_coords = self.smooth_data(x_coords, window_size=5)
+                y_coords = self.smooth_data(y_coords, window_size=5)
 
-                # Interpoler x og y
-                x_interp = interp1d(t, x_coords, kind='cubic')(t_interp)
-                y_interp = interp1d(t, y_coords, kind='cubic')(t_interp)
+                # Sjekk at lengda på x og y er lik
+                if len(x_coords) != len(y_coords):
+                    raise ValueError("x_coords og y_coords har ulik lengd etter glatting!")
+
+                # Parametrisk t verdiar
+                t = np.linspace(0, 1, len(points))
+                t_interp = np.linspace(0, 1, len(points) * 10)
+
+                # Vel interpolasjonsmetode basert på talet på punkt
+                if len(points) >= 4:
+                    # Bruk cubic interpolasjon om vi har minst 4 punkt
+                    x_interp = interp1d(t, x_coords, kind='cubic')(t_interp)
+                    y_interp = interp1d(t, y_coords, kind='cubic')(t_interp)
+                else:
+                    # Fall tilbake på linear interpolasjon
+                    x_interp = interp1d(t, x_coords, kind='linear')(t_interp)
+                    y_interp = interp1d(t, y_coords, kind='linear')(t_interp)
 
                 # Kombiner interpolerte punkt
                 smooth_points = list(zip(x_interp, y_interp))
 
                 # Teikn smoothe linjer
                 pygame.draw.lines(self.screen, self.colors["lines"], False, smooth_points, 2)
-
 
 
     def draw_path(self, path):
