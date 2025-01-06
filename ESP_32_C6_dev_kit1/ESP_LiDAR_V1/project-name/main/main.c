@@ -29,7 +29,7 @@ static const char *TAG = "LIDAR";
 #define TRIG_PIN GPIO_NUM_6 //Ornage, GND blue
 #define ECHO_PIN GPIO_NUM_7 //green, VCC yellow
 #define PULSE_PIN GPIO_NUM_2
-#define CENTER_SWITCH_PIN GPIO_NUM_0 // brown
+#define CENTER_SWITCH_PIN GPIO_NUM_1 // brown
 #define DEBUG_LED_PIN GPIO_NUM_20
 #define DEGREES_PER_TICK 0.3515625*8
 

@@ -8,24 +8,6 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 from scipy.interpolate import interp1d
 
-
-# Klasse for Kalman-filter
-class KalmanFilter:
-    def __init__(self, process_variance, measurement_variance):
-        self.process_variance = process_variance
-        self.measurement_variance = measurement_variance
-        self.estimate = 0
-        self.uncertainty = 1
-
-    def update(self, measurement):
-        kalman_gain = self.uncertainty / (self.uncertainty + self.measurement_variance)
-        self.estimate = self.estimate + kalman_gain * (measurement - self.estimate)
-        self.uncertainty = (1 - kalman_gain) * self.uncertainty
-
-    def predict(self, control_input=0):
-        self.estimate += control_input
-        self.uncertainty += self.process_variance
-
 # Klasse for UART-kommunikasjon
 class UARTReader:
     def __init__(self, port, baudrate, timeout):
@@ -57,35 +39,22 @@ class UARTReader:
 
 # Klasse for LiDAR-filtrering
 class LiDARFiltering:
-    def __init__(self, distance_limit=60, distance_offset=2, process_variance=0.1, measurement_variance=1.0):
+    def __init__(self, distance_limit=250, distance_offset=2, alpha=0.5):
         self.distance_limit = distance_limit
         self.distance_offset = distance_offset
-        self.kalman_filters = {}
-        self.data_points = deque(maxlen=500)
-        self.filtered_points = {}
         self.lock = threading.Lock()
-        self.process_variance = process_variance
-        self.measurement_variance = measurement_variance
+        self.alpha = alpha
+        self.distances = [None] * 360  # Array for kvar grad
 
     def process_data(self, angle, distance):
-        if distance <= self.distance_limit:
-            rad_angle = math.radians(angle + 90)
-            corrected_distance = distance + self.distance_offset
-            x = 400 + corrected_distance * math.cos(rad_angle) * 5
-            y = 400 - corrected_distance * math.sin(rad_angle) * 5
-
-            with self.lock:
-                self.data_points.append((x, y))
-
-                if angle not in self.kalman_filters:
-                    self.kalman_filters[angle] = KalmanFilter(self.process_variance, self.measurement_variance)
-
-                self.kalman_filters[angle].update(distance)
-                filtered_distance = self.kalman_filters[angle].estimate
-
-                filtered_x = 400 + (filtered_distance + self.distance_offset) * math.cos(rad_angle) * 5
-                filtered_y = 400 - (filtered_distance + self.distance_offset) * math.sin(rad_angle) * 5
-                self.filtered_points[angle] = (filtered_x, filtered_y)
+        if distance > self.distance_limit:
+            return
+        index = int(angle) % 360  # Sørg for at vinkelen er mellom 0 og 359
+        with self.lock:
+            if self.distances[index] is None:
+                self.distances[index] = distance + self.distance_offset
+            else:
+                self.distances[index] = self.alpha * (distance + self.distance_offset) + (1 - self.alpha) * self.distances[index]
 
 # Klasse for visualisering
 class LiDARVisualizer:
@@ -97,8 +66,9 @@ class LiDARVisualizer:
         self.filtering = filtering
         self.show_points = True
         self.running = True
-        self.distance_threshold = 10  # Maksimum avstand mellom punkt for å teikne linje
-        
+        self.scaling = 5
+        self.threshold = 3  # Maks antall tomme punkt mellom linjer
+       
         # Fargar for visualisering
         self.colors = {
             "recent_points": (0, 0, 255),  # Blå for siste 100 punkt
@@ -136,85 +106,74 @@ class LiDARVisualizer:
                         (car_center[0] + car_width // 2 - wheel_offset, car_center[1] - car_height // 2), 
                         wheel_radius)
 
-
-
-    # def compute_desired_path(self):
-    #     # Finn void-regionar
-    #     with self.filtering.lock:
-    #         points = list(self.filtering.filtered_points.values())
-
-    #     if len(points) < 3:
-    #         return []  # For få punkt til å generere ein sti
-
-    #     # Vel enkle kontrollpunkt for Bezier-kurve (midtpunkt i void)
-    #     mid_x = 400
-    #     mid_y = 200  # Enklare sti "rett fram"
-    #     control_points = [(400, 400), (mid_x, mid_y), (400, 100)]
-
-    #     # Generer Bezier-kurve manuelt
-    #     bez_curve = []
-    #     for t in np.linspace(0, 1, 100):
-    #         x = (1 - t)**2 * control_points[0][0] + 2 * (1 - t) * t * control_points[1][0] + t**2 * control_points[2][0]
-    #         y = (1 - t)**2 * control_points[0][1] + 2 * (1 - t) * t * control_points[1][1] + t**2 * control_points[2][1]
-    #         bez_curve.append((x, y))
-
-    #     return bez_curve
-
     def draw_points(self):
         with self.filtering.lock:
-            # Teikn dei siste 100 punkta i blått
-            for point in list(self.filtering.data_points)[-100:]:
-                pygame.draw.circle(self.screen, self.colors["recent_points"], (int(point[0]), int(point[1])), 2)
-            # Teikn eldre punkt i grønt
-            for point in list(self.filtering.data_points)[:-100]:
-                pygame.draw.circle(self.screen, self.colors["old_points"], (int(point[0]), int(point[1])), 2)
+            # Iterer gjennom arrayet med 360 avstandar
+            for i in range(360):
+                distance = self.filtering.distances[i]
+                if distance is None:
+                    continue
 
-    def smooth_data(self, data, window_size=5):
-        if len(data) < window_size:
-            return data
-        return np.convolve(data, np.ones(window_size) / window_size, mode='same')
-    
+                # Legg til 90 grader for å justere 0 grader til rett fram
+                adjusted_angle = (i + 90) % 360
+
+                # Konverter polar til kartesiske koordinatar
+                x = 400 + distance * math.cos(math.radians(adjusted_angle)) * self.scaling
+                y = 400 - distance * math.sin(math.radians(adjusted_angle)) * self.scaling
+
+                # Vel farge basert på om punktet er blant dei siste 100 målingane
+                if i in range(360)[-100:]:
+                    color = self.colors["recent_points"]  # Blå for siste 100 punkt
+                else:
+                    color = self.colors["old_points"]    # Grøn for eldre punkt
+
+                # Teikn punktet
+                pygame.draw.circle(self.screen, color, (int(x), int(y)), 2)
+
     def draw_lines(self):
         with self.filtering.lock:
-            points = list(self.filtering.filtered_points.values())
-            if len(points) > 1:
-                # Center for berekning
-                center = (400, 400)
-
-                # Sorter punkta basert på vinkelen frå origo
-                points.sort(key=lambda p: math.atan2(p[1] - center[1], p[0] - center[0]))
-
-                # Ekstrahere x og y-koordinatar
-                x_coords = np.array([p[0] for p in points])
-                y_coords = np.array([p[1] for p in points])
-
-                # Glatt x og y-koordinatar
-                x_coords = self.smooth_data(x_coords, window_size=5)
-                y_coords = self.smooth_data(y_coords, window_size=5)
-
-                # Sjekk at lengda på x og y er lik
-                if len(x_coords) != len(y_coords):
-                    raise ValueError("x_coords og y_coords har ulik lengd etter glatting!")
-
-                # Parametrisk t verdiar
-                t = np.linspace(0, 1, len(points))
-                t_interp = np.linspace(0, 1, len(points) * 10)
-
-                # Vel interpolasjonsmetode basert på talet på punkt
-                if len(points) >= 4:
-                    # Bruk cubic interpolasjon om vi har minst 4 punkt
-                    x_interp = interp1d(t, x_coords, kind='cubic')(t_interp)
-                    y_interp = interp1d(t, y_coords, kind='cubic')(t_interp)
+            distances = self.filtering.distances
+            prev_index = None
+            max_distance = 50  # Maksimum avstand mellom punkt for å teikne linje
+            smoothed_distances = [None] * 360  # Array for lagring av lavpassfiltrerte avstandar
+            
+            # Utfør lavpassfiltrering på distanse-arrayet
+            for i in range(360):
+                if distances[i] is None:
+                    continue
+                # Bruk naboar til å glatte ut verdien
+                neighbors = [
+                    distances[(i - 1) % 360], distances[i], distances[(i + 1) % 360]
+                ]
+                valid_neighbors = [d for d in neighbors if d is not None]
+                if valid_neighbors:
+                    smoothed_distances[i] = sum(valid_neighbors) / len(valid_neighbors)
                 else:
-                    # Fall tilbake på linear interpolasjon
-                    x_interp = interp1d(t, x_coords, kind='linear')(t_interp)
-                    y_interp = interp1d(t, y_coords, kind='linear')(t_interp)
+                    smoothed_distances[i] = distances[i]
 
-                # Kombiner interpolerte punkt
-                smooth_points = list(zip(x_interp, y_interp))
+            # Teikn linjer basert på smoothet distansar og avstandssjekk
+            for i in range(360):
+                if smoothed_distances[i] is None:
+                    continue
 
-                # Teikn smoothe linjer
-                pygame.draw.lines(self.screen, self.colors["lines"], False, smooth_points, 2)
+                # Juster vinkel og berekn koordinatar
+                adjusted_angle = (i + 90) % 360
+                x1 = 400 + smoothed_distances[i] * math.cos(math.radians(adjusted_angle)) * self.scaling
+                y1 = 400 - smoothed_distances[i] * math.sin(math.radians(adjusted_angle)) * self.scaling
+
+                if prev_index is not None:
+                    # Kalkuler avstand mellom dette punktet og forrige punkt
+                    adjusted_prev_angle = (prev_index + 90) % 360
+                    x2 = 400 + smoothed_distances[prev_index] * math.cos(math.radians(adjusted_prev_angle)) * self.scaling
+                    y2 = 400 - smoothed_distances[prev_index] * math.sin(math.radians(adjusted_prev_angle)) * self.scaling
+                    
+                    distance_between_points = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                    if distance_between_points <= max_distance * self.scaling:
+                        # Teikn linje berre dersom avstanden er mindre enn maks
+                        pygame.draw.line(self.screen, self.colors["lines"], (x1, y1), (x2, y2), 2)
+
+                prev_index = i
+
 
 
     def draw_path(self, path):
@@ -235,8 +194,7 @@ class LiDARVisualizer:
                 mouse_x, mouse_y = event.pos
                 if 10 <= mouse_x <= 110 and 10 <= mouse_y <= 50:
                     with self.filtering.lock:
-                        self.filtering.data_points.clear()
-                        self.filtering.filtered_points.clear()
+                        self.filtering.distances = [None] * 360
                 elif 120 <= mouse_x <= 260 and 10 <= mouse_y <= 50:
                     self.show_points = not self.show_points
 
