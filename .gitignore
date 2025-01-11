@@ -8,8 +8,11 @@
 *.d
 *.mk
 *.srec
-ATtiny85main/main/main/Debug/Makefile
+*Makefile
 *.map
 LiDAR_UART_plotiing/LiDAR_UART_plot_CPP/subprojects/sfml/
 ESP_32_C6_dev_kit1/ESP_LiDAR_V1/ESP32_C6_Vl53l0x/components/vl53l0x_esp32/
-PrintFiles/animation/slipring_X4_Animation v3.avi
+*.avi
+*.xml
+*.cppproj
+*.atsln
