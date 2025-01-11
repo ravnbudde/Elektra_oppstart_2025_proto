@@ -6,6 +6,8 @@
  */ 
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
+#include "include/vl53l0x.h"
 
 
 int main(void)
