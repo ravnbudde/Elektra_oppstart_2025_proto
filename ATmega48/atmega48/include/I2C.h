@@ -6,27 +6,45 @@
  */ 
 
 
+
+
+
 #ifndef I2C_H_
 #define I2C_H_
-#include <avr/io.h>
-#include <avr/interrupt.h>
+
+#include "timer0.h"
 
 #define FCPU 8000000UL
 
-void I2C_Init(uint32_t clockSpeed);
+class I2C {
+	public:
+	// Constructor
+	I2C(uint32_t clockSpeed);
 
-void I2C_Start();
-void I2C_Stop();
+	// Methods for initialization and communication
+	void Start();
+	uint8_t Stop();
+	void Write(uint8_t data);
+	uint8_t ReadAck();
+	uint8_t ReadNack();
+	void WriteToAddress(uint8_t address, uint8_t data);
+	uint8_t ReadFromAddress(uint8_t address);
+	
+	void ReadMultipleFromAddress(uint8_t address, uint8_t registerAddress, uint8_t* buffer, uint8_t length);
+	void WriteMultipleToAddress(uint8_t address, uint8_t registerAddress, const uint8_t* data, uint8_t length);
+	void ReadMultipleFromRegister(uint8_t address, uint8_t registerAddress, uint8_t* buffer, uint8_t length);
 
-void I2C_Write(uint8_t data);
-uint8_t I2C_ReadAck();
-uint8_t I2C_ReadNack();
-
-void I2C_WriteToAddress(uint8_t address, uint8_t data);
-uint8_t I2C_ReadFromAddress(uint8_t address);
+	private:
+	uint32_t clockSpeed; // Store clock speed for reference
+};
 
 
 
 
 
 #endif /* I2C_H_ */
+
+
+
+
+

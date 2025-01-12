@@ -18,7 +18,7 @@
 //Ikke tid til å se over nå, må gjøres + testes
 
 
-void I2C_Init(uint32_t clockSpeed) {
+I2C::I2C(uint32_t clockSpeed) {
 	// Sett TWI bitrate
 	DDRC &= ~((1<<DDC4)|(1<<DDC5));
 	PORTC |= (1<<PB4)|(1<<PB5);
@@ -34,7 +34,7 @@ void I2C_Init(uint32_t clockSpeed) {
 
 
 
-void I2C_Start() {
+void I2C::Start() {
 	// Send START-condition
 	TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);
 	
@@ -44,16 +44,18 @@ void I2C_Start() {
 
 
 
-void I2C_Stop() {
+uint8_t I2C::Stop() {
 
 	// Send STOP-condition
 	TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWSTO);
+	
+	return TWDR;
 
 }
 
 
 
-void I2C_Write(uint8_t data) {
+void I2C::Write(uint8_t data) {
 
 	TWDR = data; // Last data til Data Register
 
@@ -61,14 +63,12 @@ void I2C_Write(uint8_t data) {
 
 	while (!(TWCR & (1 << TWINT))); // Vent til overf?ring er ferdig
 	
-	
-	
-
+	//return (((TWSR & 0xF8) == 0x28) ^ 1);
 }
 
 
 
-uint8_t I2C_ReadAck() {
+uint8_t I2C::ReadAck() {
 
 	// Lese en byte og sende ACK
 
@@ -82,7 +82,7 @@ uint8_t I2C_ReadAck() {
 
 
 
-uint8_t I2C_ReadNack() {
+uint8_t I2C::ReadNack() {
 
 	// Lese en byte og sende NACK
 
@@ -96,33 +96,117 @@ uint8_t I2C_ReadNack() {
 
 
 
-void I2C_WriteToAddress(uint8_t address, uint8_t data) {
+void I2C::WriteToAddress(uint8_t address, uint8_t data) {
 
-	I2C_Start();
+	this->Start();
 
-	I2C_Write((address << 1) | 0); // Skriv adresse + WRITE
+	this->Write((address << 1) | 0); // Skriv adresse + WRITE
 
-	I2C_Write(data); // Skriv data
+	this->Write(data); // Skriv data
 
-	I2C_Stop();
+	this->Stop();
 
 }
 
 
 
-uint8_t I2C_ReadFromAddress(uint8_t address) {
+uint8_t I2C::ReadFromAddress(uint8_t address) {
 
 	uint8_t receivedData;
 
-	I2C_Start();
+	this->Start();
 
-	I2C_Write((address << 1) | 1); // Skriv adresse + READ
+	this->Write((address << 1) | 1); // Skriv adresse + READ
 	
 
-	receivedData = I2C_ReadNack(); // Lese data
+	receivedData = this->ReadNack(); // Lese data
 
-	I2C_Stop();
+	this->Stop();
 
 	return receivedData;
 
 }
+
+void I2C::ReadMultipleFromAddress(uint8_t address, uint8_t registerAddress, uint8_t* buffer, uint8_t length) {
+	// Start condition
+	this->Start();
+
+	// Send device address with WRITE (LSB = 0)
+	this->Write((address << 1) | 0);
+
+	// Send register address
+	this->Write(registerAddress);
+
+	// Restart condition
+	this->Start();
+
+	// Send device address with READ (LSB = 1)
+	this->Write((address << 1) | 1);
+
+	// Read bytes into buffer
+	for (uint8_t i = 0; i < length; i++) {
+		if (i == length - 1) {
+			// Send NACK after the last byte
+			buffer[i] = this->ReadNack();
+			} else {
+			// Send ACK for intermediate bytes
+			buffer[i] = this->ReadAck();
+		}
+	}
+
+	// Stop condition
+	this->Stop();
+}
+
+void I2C::WriteMultipleToAddress(uint8_t address, uint8_t registerAddress, const uint8_t* data, uint8_t length) {
+	// Start condition
+	this->Start();
+
+	// Send device address with WRITE (LSB = 0)
+	this->Write((address << 1) | 0);
+
+	// Send register address
+	this->Write(registerAddress);
+
+	// Write data bytes from the array
+	for (uint8_t i = 0; i < length; i++) {
+		this->Write(data[i]);
+	}
+
+	// Stop condition
+	this->Stop();
+}
+
+void I2C::ReadMultipleFromRegister(uint8_t address, uint8_t registerAddress, uint8_t* buffer, uint8_t length) {
+	// Start condition
+	this->Start();
+
+	// Send device address with WRITE (LSB = 0)
+	this->Write((address << 1) | 0);
+
+	// Send register address
+	this->Write(registerAddress);
+
+	// Restart condition
+	this->Start();
+
+	// Send device address with READ (LSB = 1)
+	this->Write((address << 1) | 1);
+
+	// Read bytes into buffer
+	for (uint8_t i = 0; i < length; i++) {
+		if (i == length - 1) {
+			// Send NACK after the last byte
+			buffer[i] = this->ReadNack();
+			} else {
+			// Send ACK for intermediate bytes
+			buffer[i] = this->ReadAck();
+		}
+	}
+
+	// Stop condition
+	this->Stop();
+}
+
+
+

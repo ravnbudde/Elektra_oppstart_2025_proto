@@ -8,41 +8,34 @@
 
 #include "include/vl53l0x.h"
 
-volatile uint8_t flag = 0;
-
-
-void timer1_init() {
-	DDRB = (1<<PB1);
-	
-	TCCR1B |= (1<<CS11) | (1<<CS10);
-	
-	TIFR1 |= (1<<TOV1);
-	TIMSK1 |= (1<<TOIE1);
-	
-}
-
-ISR(TIMER1_OVF_vect){
-	PORTB ^= (1<<PB1);
-	flag = 0;
-}
 
 
 int main(void)
 {
-	I2C_Init(100000);
-	
-/*	timer1_init();*/
-	
+	DDRB |= (1<<PB1);
+	cli();
+	Timer0_Init();
+	VL53L0X laser;
+	laser.setTimeout(500);
+	laser.init();
+	laser.setMeasurementTimingBudget(20000);
 	sei();
+	uint8_t time = 0;
 
 	while (1)
 	{
-		I2C_WriteToAddress(0x29, 0x69);
+		restart_millis();
+		PORTB |= (1<<PB1);
+		while(millis() < 200);
+		PORTB &= (1<<PB1);
+		laser.readRangeSingleMillimeters();		
+		//time = millis();
+		//while(time + 100 > millis());
 		
 		
-/*
-		while(flag);
-		flag = 1;*/
+		if(laser.timeoutOccurred()){
+			PORTB &= ~(1<<PB1);
+		}
 	}
 	
 }
