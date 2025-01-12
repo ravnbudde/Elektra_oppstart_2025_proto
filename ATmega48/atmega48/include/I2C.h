@@ -11,6 +11,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#define FCPU 8000000UL
+
 void I2C_Init(uint32_t clockSpeed);
 
 void I2C_Start();
