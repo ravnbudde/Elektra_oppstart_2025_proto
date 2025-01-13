@@ -4,13 +4,14 @@
  * Created: 13.01.2025 13:31:03
  * Author : ravnr
  */ 
-
-#include <avr/io.h>
+#include "inc/vl53l0x_i2c_platform.h"
 
 
 int main(void)
 {
-    /* Replace with your application code */
+
+	tw_init(TW_FREQ_100K, TRUE);
+
     while (1) 
     {
     }

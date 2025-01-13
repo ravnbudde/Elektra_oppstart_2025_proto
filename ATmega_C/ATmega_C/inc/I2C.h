@@ -15,6 +15,9 @@
 #define DEBUG_LOG			0
 #define SUCCESS				0
 
+typedef uint8_t bool;
+#define TRUE	1
+#define FALSE	0 
 
 
 #define TW_SCL_PIN			PORTC5

@@ -7,8 +7,7 @@
 
 
 #ifndef VL53L0X_I2C_PLATFORM_H_
-#define VL53L0X_I2C_PLATFORM_H_
-
+#include "I2C.h"
 
 
 
