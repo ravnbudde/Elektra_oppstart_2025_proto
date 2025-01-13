@@ -12,34 +12,33 @@
 #ifndef I2C_H_
 #define I2C_H_
 
-#include "timer0.h"
 
-#define FCPU 8000000UL
+#include <avr/io.h>
+#include <util/twi.h>
+#include <stdbool.h>
 
-class I2C {
-	public:
-	// Constructor
-	I2C(uint32_t clockSpeed);
+#define DEBUG_LOG			0
+#define SUCCESS				0
 
-	// Methods for initialization and communication
-	void Start();
-	uint8_t Stop();
-	void Write(uint8_t data);
-	uint8_t ReadAck();
-	uint8_t ReadNack();
-	void WriteToAddress(uint8_t address, uint8_t data);
-	uint8_t ReadFromAddress(uint8_t address);
-	
-	void ReadMultipleFromAddress(uint8_t address, uint8_t registerAddress, uint8_t* buffer, uint8_t length);
-	void WriteMultipleToAddress(uint8_t address, uint8_t registerAddress, const uint8_t* data, uint8_t length);
-	void ReadMultipleFromRegister(uint8_t address, uint8_t registerAddress, uint8_t* buffer, uint8_t length);
+#define TW_SCL_PIN			PORTC5
+#define TW_SDA_PIN			PORTC4
 
-	private:
-	uint32_t clockSpeed; // Store clock speed for reference
-};
+#define TW_SLA_W(ADDR)		((ADDR << 1) | TW_WRITE)
+#define TW_SLA_R(ADDR)		((ADDR << 1) | TW_READ)
+#define TW_READ_ACK			1
+#define TW_READ_NACK		0
 
+typedef uint16_t ret_code_t;
 
+typedef enum {
+	TW_FREQ_100K,
+	TW_FREQ_250K,
+	TW_FREQ_400K
+} twi_freq_mode_t;
 
+void tw_init(twi_freq_mode_t twi_freq, bool pullup_en);
+ret_code_t tw_master_transmit(uint8_t slave_addr, uint8_t* p_data, uint8_t len, bool repeat_start);
+ret_code_t tw_master_receive(uint8_t slave_addr, uint8_t* p_data, uint8_t len);
 
 
 #endif /* I2C_H_ */

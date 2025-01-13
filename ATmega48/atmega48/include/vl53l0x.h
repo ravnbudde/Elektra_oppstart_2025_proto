@@ -18,6 +18,18 @@
 class VL53L0X
 {
 	public:
+	//Egne funksjoner:
+	void WriteRegister(uint8_t reg, uint8_t val);
+	void WriteRegister16bit(uint8_t reg, uint16_t val);
+	void WriteRegister32bit(uint8_t reg, uint32_t val);
+	uint8_t ReadRegister(uint8_t reg);
+	uint16_t ReadRegister16bit(uint8_t reg);
+	uint32_t ReadRegister32bit(uint8_t reg);
+	
+	void WriteMulti(uint8_t reg, uint8_t const * src, uint8_t count);
+	void ReadMulti(uint8_t reg, uint8_t * dst, uint8_t count);
+	
+	
 	// register addresses from API vl53l0x_device.h (ordered as listed there)
 	enum regAddr
 	{
@@ -114,14 +126,8 @@ class VL53L0X
 
 	bool init(bool io_2v8 = true);
 
-	void writeReg(uint8_t reg, uint8_t value);
-	void writeReg16Bit(uint8_t reg, uint16_t value);
-	void writeReg32Bit(uint8_t reg, uint32_t value);
-	uint8_t readReg(uint8_t reg);
-	uint16_t readReg16Bit(uint8_t reg);
-	uint32_t readReg32Bit(uint8_t reg);
 
-	void writeMulti(uint8_t reg, uint8_t const * src, uint8_t count);
+
 	void readMulti(uint8_t reg, uint8_t * dst, uint8_t count);
 
 	bool setSignalRateLimit(float limit_Mcps);
@@ -160,7 +166,6 @@ class VL53L0X
 		uint32_t msrc_dss_tcc_us,    pre_range_us,    final_range_us;
 	};
 
-	I2C * bus;
 	uint8_t address = 0x29;
 	uint16_t io_timeout;
 	bool did_timeout;
