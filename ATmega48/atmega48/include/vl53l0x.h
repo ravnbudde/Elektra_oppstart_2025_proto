@@ -26,7 +26,7 @@ class VL53L0X
 	uint16_t ReadRegister16bit(uint8_t reg);
 	uint32_t ReadRegister32bit(uint8_t reg);
 	
-	void WriteMulti(uint8_t reg, uint8_t const * src, uint8_t count);
+	void WriteMulti(uint8_t reg, uint8_t * src, uint8_t count);
 	void ReadMulti(uint8_t reg, uint8_t * dst, uint8_t count);
 	
 	
@@ -124,29 +124,28 @@ class VL53L0X
 
 	inline uint8_t getAddress() { return address; }
 
-	bool init(bool io_2v8 = true);
+	bool init();
 
 
 
-	void readMulti(uint8_t reg, uint8_t * dst, uint8_t count);
 
 	bool setSignalRateLimit(float limit_Mcps);
-	float getSignalRateLimit();
+	//float getSignalRateLimit();
 
 	bool setMeasurementTimingBudget(uint32_t budget_us);
 	uint32_t getMeasurementTimingBudget();
 
-	bool setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks);
+	//bool setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks);
 	uint8_t getVcselPulsePeriod(vcselPeriodType type);
 
-	void startContinuous(uint32_t period_ms = 0);
-	void stopContinuous();
-	uint16_t readRangeContinuousMillimeters();
+	//void startContinuous(uint32_t period_ms = 0);
+	//void stopContinuous();
+	//uint16_t readRangeContinuousMillimeters();
 	uint16_t readRangeSingleMillimeters();
 
 	inline void setTimeout(uint16_t timeout) { io_timeout = timeout; }
 	inline uint16_t getTimeout() { return io_timeout; }
-	bool timeoutOccurred();
+	//bool timeoutOccurred();
 
 	private:
 	// TCC: Target CentreCheck

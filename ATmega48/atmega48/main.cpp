@@ -7,6 +7,7 @@
 
 
 #include "include/vl53l0x.h"
+//#include "include/I2C.h"
 
 
 
@@ -19,7 +20,7 @@ int main(void)
 	VL53L0X laser;
 	laser.setTimeout(500);
 	laser.init();
-	laser.setMeasurementTimingBudget(20000);
+	//laser.setMeasurementTimingBudget(20000);
 	sei();
 
 	while (1)
@@ -32,13 +33,12 @@ int main(void)
 		laser.readRangeSingleMillimeters();
 		while(millis() < 200);
 			
-		//time = millis();
-		//while(time + 100 > millis());
+
 		
 		
-		if(laser.timeoutOccurred()){
-			PORTB |= (1<<PB1);
-		}
+		//if(laser.timeoutOccurred()){
+			//PORTB |= (1<<PB1);
+		//}
 	}
 	
 }

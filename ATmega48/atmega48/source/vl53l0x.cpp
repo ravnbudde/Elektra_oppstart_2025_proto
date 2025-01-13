@@ -7,8 +7,6 @@
 
 
 #include "../include/vl53l0x.h"
-#include <avr/io.h>
-#include <avr/interrupt.h>
 
 // Most of the functionality of this library is based on the VL53L0X API
 // provided by ST (STSW-IMG005), and some of the explanatory comments are quoted
@@ -61,19 +59,17 @@ VL53L0X::VL53L0X()
 // enough unless a cover glass is added.
 // If io_2v8 (optional) is true or not given, the sensor is configured for 2V8
 // mode.
-bool VL53L0X::init(bool io_2v8)
+bool VL53L0X::init()
 {
 	// check model ID register (value specified in datasheet)
 	if (ReadRegister(IDENTIFICATION_MODEL_ID) != 0xEE) { return false; }
 
 	// VL53L0X_DataInit() begin
 
-	// sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
-	if (io_2v8)
-	{
-		WriteRegister(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
-		ReadRegister(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV) | 0x01); // set bit 0
-	}
+	//Setter sensor i 2.8v mode
+	WriteRegister(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
+	ReadRegister(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV) | 0x01); // set bit 0
+
 
 
 	// "Set I2C standard mode"
@@ -110,7 +106,7 @@ bool VL53L0X::init(bool io_2v8)
 	// the API, but the same data seems to be more easily readable from
 	// GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
 	uint8_t ref_spad_map[6];
-	readMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, ref_spad_map, 6);
+	ReadMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, ref_spad_map, 6);
 
 	// -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
 
@@ -443,11 +439,11 @@ uint8_t VL53L0X::ReadRegister(uint8_t reg)
 		error_code = tw_master_receive(address, &value, 1);	
 	}
 	
-	
+	return value;
 }
 uint16_t VL53L0X::ReadRegister16bit(uint8_t reg)
 {
-	uint8_t* buffer;
+	uint8_t buffer[2];
 	ret_code_t error_code;
 	error_code = tw_master_transmit(address, &reg, 1, true); //Sender adresse(w) + register uten stop-condition
 	if (error_code != SUCCESS)
@@ -461,11 +457,12 @@ uint16_t VL53L0X::ReadRegister16bit(uint8_t reg)
 	}
 	
 	uint16_t value = (buffer[0]<<8) | buffer[1];
+	
 	return value;	
 }
 uint32_t VL53L0X::ReadRegister32bit(uint8_t reg)
 {
-	uint8_t* buffer;
+	uint8_t buffer[4];
 	ret_code_t error_code;
 	error_code = tw_master_transmit(address, &reg, 1, true); //Sender adresse(w) + register uten stop-condition
 	if (error_code != SUCCESS)
@@ -479,10 +476,11 @@ uint32_t VL53L0X::ReadRegister32bit(uint8_t reg)
 	}
 		
 	uint32_t value = (buffer[0]<<24) | (buffer[1]<<16) | (buffer[2]<<8) | buffer[3];
+	
 	return value;
 }
 
-void VL53L0X::WriteMulti(uint8_t reg, uint8_t const * src, uint8_t count)
+void VL53L0X::WriteMulti(uint8_t reg, uint8_t * src, uint8_t count)
 {
 	ret_code_t error_code;
 	error_code = tw_master_transmit(address, src, count, false);
@@ -518,6 +516,7 @@ void VL53L0X::ReadMulti(uint8_t reg, uint8_t * dst, uint8_t count)
 // seems to increase the likelihood of getting an inaccurate reading because of
 // unwanted reflections from objects other than the intended target.
 // Defaults to 0.25 MCPS as initialized by the ST API and this library.
+
 bool VL53L0X::setSignalRateLimit(float limit_Mcps)
 {
 	if (limit_Mcps < 0 || limit_Mcps > 511.99) { return false; }
@@ -527,11 +526,14 @@ bool VL53L0X::setSignalRateLimit(float limit_Mcps)
 	return true;
 }
 
+
+
+
 // Get the return signal rate limit check value in MCPS
-float VL53L0X::getSignalRateLimit()
-{
-	return (float)ReadRegister16bit(FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT) / (1 << 7);
-}
+//float VL53L0X::getSignalRateLimit()
+//{
+	//return (float)ReadRegister16bit(FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT) / (1 << 7);
+//}
 
 // Set the measurement timing budget in microseconds, which is the time allowed
 // for one measurement; the ST API and this library take care of splitting the
@@ -679,6 +681,7 @@ uint32_t VL53L0X::getMeasurementTimingBudget()
 //  pre:  12 to 18 (initialized default: 14)
 //  final: 8 to 14 (initialized default: 10)
 // based on VL53L0X_set_vcsel_pulse_period()
+/*
 bool VL53L0X::setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks)
 {
 	uint8_t vcsel_period_reg = encodeVcselPeriod(period_pclks);
@@ -853,6 +856,7 @@ bool VL53L0X::setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks)
 
 	return true;
 }
+*/
 
 // Get the VCSEL pulse period in PCLKs for the given period type.
 // based on VL53L0X_get_vcsel_pulse_period()
@@ -875,6 +879,7 @@ uint8_t VL53L0X::getVcselPulsePeriod(vcselPeriodType type)
 // inter-measurement period in milliseconds determining how often the sensor
 // takes a measurement.
 // based on VL53L0X_StartMeasurement()
+/*
 void VL53L0X::startContinuous(uint32_t period_ms)
 {
 	WriteRegister(0x80, 0x01);
@@ -910,9 +915,11 @@ void VL53L0X::startContinuous(uint32_t period_ms)
 		WriteRegister(SYSRANGE_START, 0x02); // VL53L0X_REG_SYSRANGE_MODE_BACKTOBACK
 	}
 }
+*/
 
 // Stop continuous measurements
 // based on VL53L0X_StopMeasurement()
+/*
 void VL53L0X::stopContinuous()
 {
 	WriteRegister(SYSRANGE_START, 0x01); // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
@@ -923,10 +930,12 @@ void VL53L0X::stopContinuous()
 	WriteRegister(0x00, 0x01);
 	WriteRegister(0xFF, 0x00);
 }
+*/
 
 // Returns a range reading in millimeters when continuous mode is active
 // (readRangeSingleMillimeters() also calls this function after starting a
 // single-shot range measurement)
+/*
 uint16_t VL53L0X::readRangeContinuousMillimeters()
 {
 	startTimeout();
@@ -946,7 +955,8 @@ uint16_t VL53L0X::readRangeContinuousMillimeters()
 	WriteRegister(SYSTEM_INTERRUPT_CLEAR, 0x01);
 
 	return range;
-}
+}*/
+
 
 // Performs a single-shot range measurement and returns the reading in
 // millimeters
@@ -974,17 +984,42 @@ uint16_t VL53L0X::readRangeSingleMillimeters()
 		}
 	}
 
-	return readRangeContinuousMillimeters();
+
+
+
+
+
+//	return readRangeContinuousMillimeters();
+	
+	
+	while ((ReadRegister(RESULT_INTERRUPT_STATUS) & 0x07) == 0)
+	{
+		if (checkTimeoutExpired())
+		{
+			did_timeout = true;
+			return 65535;
+		}
+	}
+
+	// assumptions: Linearity Corrective Gain is 1000 (default);
+	// fractional ranging is not enabled
+	uint16_t range = ReadRegister16bit(RESULT_RANGE_STATUS + 10);
+
+	WriteRegister(SYSTEM_INTERRUPT_CLEAR, 0x01);
+
+	return range;
 }
 
 // Did a timeout occur in one of the read functions since the last call to
 // timeoutOccurred()?
+/*
 bool VL53L0X::timeoutOccurred()
 {
 	bool tmp = did_timeout;
 	did_timeout = false;
 	return tmp;
 }
+*/
 
 // Private Methods /////////////////////////////////////////////////////////////
 //
@@ -1009,12 +1044,12 @@ bool VL53L0X::getSpadInfo(uint8_t * count, bool * type_is_aperture)
 	WriteRegister(0x94, 0x6b);
 	WriteRegister(0x83, 0x00);
 	startTimeout();
-	while (WriteRegister(0x83) == 0x00)
+	while (ReadRegister(0x83) == 0x00)
 	{
 		if (checkTimeoutExpired()) { return false; }
 	}
 	WriteRegister(0x83, 0x01);
-	tmp = WriteRegister(0x92);
+	tmp = ReadRegister(0x92);
 
 	*count = tmp & 0x7f;
 	*type_is_aperture = (tmp >> 7) & 0x01;
@@ -1130,6 +1165,7 @@ uint32_t VL53L0X::timeoutMicrosecondsToMclks(uint32_t timeout_period_us, uint8_t
 
 	return (((timeout_period_us * 1000) + (macro_period_ns / 2)) / macro_period_ns);
 }
+
 
 
  //based on VL53L0X_perform_single_ref_calibration()

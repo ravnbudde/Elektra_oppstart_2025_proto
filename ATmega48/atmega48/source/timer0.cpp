@@ -5,8 +5,6 @@
  *  Author: ravnr
  */ 
 #include "../include/timer0.h"
-#include <avr/io.h>
-#include <avr/interrupt.h>
 
 volatile uint16_t timer0_milliseconds = 0;
 

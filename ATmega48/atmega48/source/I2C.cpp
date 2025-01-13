@@ -13,7 +13,7 @@
 //(side 232)
 
 
-static ret_code_t tw_start(void)
+ret_code_t tw_start(void)
 {
 	/* Send START condition */
 	TWCR =  (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
@@ -30,14 +30,14 @@ static ret_code_t tw_start(void)
 }
 
 
-static void tw_stop(void)
+void tw_stop(void)
 {
 	/* Send STOP condition */
 	TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
 }
 
 
-static ret_code_t tw_write_sla(uint8_t sla)
+ret_code_t tw_write_sla(uint8_t sla)
 {
 	/* Transmit slave address with read/write flag */
 	TWDR = sla;
@@ -53,8 +53,7 @@ static ret_code_t tw_write_sla(uint8_t sla)
 	return SUCCESS;
 }
 
-
-static ret_code_t tw_write(uint8_t data)
+ret_code_t tw_write(uint8_t data)
 {
 	/* Transmit 1 byte*/
 	TWDR = data;
@@ -71,7 +70,7 @@ static ret_code_t tw_write(uint8_t data)
 }
 
 
-static uint8_t tw_read(bool read_ack)
+uint8_t tw_read(bool read_ack)
 {
 	if (read_ack)
 	{
