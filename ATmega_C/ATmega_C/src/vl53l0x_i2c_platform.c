@@ -115,7 +115,7 @@ void VL53L0X_read_16reg(struct VL53L0X* dev, uint8_t reg, uint8_t* buffer)
 }
 void VL53L0X_write_16reg(struct VL53L0X* dev, uint8_t reg, uint8_t* data)
 {
-	VL53L0X_write_mult(dev, reg, &data, 2, FALSE);
+	VL53L0X_write_mult(dev, reg, data, 2, FALSE);
 }
 
 

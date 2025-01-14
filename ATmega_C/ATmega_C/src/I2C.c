@@ -11,7 +11,6 @@
 /*_______Litt inspirasjon fra datablad_________*/  
 //(side 232)
 
-
 ret_code_t tw_start(void)
 {
 	/* Send START condition */
@@ -94,9 +93,13 @@ uint8_t tw_read(bool read_ack)
 }
 
 
+
 void tw_init(twi_freq_mode_t twi_freq_mode, bool pullup_en)
 {
-	DDRC  |= (1 << TW_SDA_PIN) | (1 << TW_SCL_PIN);
+	//Fra git: skrev DDRC til output så pullup av/på så DDRC tilbake til input. mulig ting å teste om dette ikke funker 100
+	DDRC  &= ~((1 << TW_SDA_PIN) | (1 << TW_SCL_PIN));
+	
+	
 	if (pullup_en == TRUE)
 	{
 		PORTC |= (1 << TW_SDA_PIN) | (1 << TW_SCL_PIN);
@@ -105,8 +108,10 @@ void tw_init(twi_freq_mode_t twi_freq_mode, bool pullup_en)
 	{
 		PORTC &= ~((1 << TW_SDA_PIN) | (1 << TW_SCL_PIN));
 	}
-	DDRC  &= ~((1 << TW_SDA_PIN) | (1 << TW_SCL_PIN));
+
+	TWSR = 0; //Prescale = 0 (1)
 	
+
 	switch (twi_freq_mode)
 	{
 		case TW_FREQ_100K:
@@ -135,6 +140,8 @@ void tw_init(twi_freq_mode_t twi_freq_mode, bool pullup_en)
 		
 		default: break;
 	}
+
+	TWCR = (1 << TWEN); //enable TWI
 }
 
 
