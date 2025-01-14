@@ -13,6 +13,7 @@ struct VL53L0X {
 	uint8_t address;
 	uint8_t stop_variable;
 	uint8_t last_status;
+	uint16_t last_measure_mm;
 };
 
 
@@ -22,6 +23,8 @@ void VL53L0X_read_mult(struct VL53L0X* dev, uint8_t reg, uint8_t* buffer, uint8_
 
 void VL53L0X_read_reg(struct VL53L0X* dev, uint8_t reg, uint8_t* buffer);
 void VL53L0X_write_reg(struct VL53L0X* dev, uint8_t reg, uint8_t data);
+void VL53L0X_read_16reg(struct VL53L0X* dev, uint8_t reg, uint8_t* buffer);
+void VL53L0X_write_16reg(struct VL53L0X* dev, uint8_t reg, uint8_t* buffer);
 
 
 #endif /* VL53L0X_I2C_PLATFORM_H_ */

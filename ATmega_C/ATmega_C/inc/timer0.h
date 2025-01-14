@@ -11,10 +11,14 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+
 
 void Timer0_Init();
 void restart_millis();
 uint16_t millis();
+
+
 
 
 #endif /* TIMER0_H_ */

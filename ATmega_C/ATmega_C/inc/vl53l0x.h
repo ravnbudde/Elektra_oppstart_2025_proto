@@ -11,8 +11,11 @@
 #include "vl53l0x_i2c_platform.h"
 
 
+
+
 bool VL53L0X_init(struct VL53L0X* dev);
 
+void VL53L0X_read_mm(struct VL53L0X* dev);
 
 
 #endif /* VL53L0X_H_ */

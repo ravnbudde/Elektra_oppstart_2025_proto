@@ -13,12 +13,20 @@ int main(void)
 	device->address = 0x29;
 	device->last_status = 0;
 	device->stop_variable = 0;
+	device->last_measure_mm = 0;
 
+	cli();
+	Timer0_Init();
 	tw_init(TW_FREQ_100K, TRUE);
 	VL53L0X_init(device);
-
+	sei();
+	
     while (1) 
     {
+		restart_millis();
+		while (millis() < 100);
+		
+		VL53L0X_read_mm(device);
     }
 }
 
