@@ -15,7 +15,7 @@ char report[120];
 char ssid[] = SECRET_SSID;
 char password[] = SECRET_PASS;
 
-char udpAddr[] = "10.100.35.60";
+char udpAddr[] = UDP_ADDR;
 int udpPort = 15000;
 
 WiFiUDP udp;
