@@ -5,7 +5,7 @@
 #include <WiFiS3.h>
 #include <WiFiUdp.h>
 
-// I gitignore. Lag en fil under lib, lag SECRET_SSID = nettverk SSID, SECRET_PASS = nettverk passord
+// sett SECRET_SSID = nettverk SSID, SECRET_PASS = nettverk passord i lib/arduino_secrets
 #include "../lib/arduino_secrets.h" 
 
 ZumoIMU imu;
