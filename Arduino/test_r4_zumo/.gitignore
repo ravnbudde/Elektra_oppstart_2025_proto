@@ -4,4 +4,4 @@
 .vscode/launch.json
 .vscode/ipch
 
-.lib/arduino_secrets.h
+lib/arduino_secrets.h
