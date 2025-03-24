@@ -1,0 +1,15 @@
+# Ignorer Docker-volum og loggfiler
+mosquitto_data/
+mosquitto_log/
+*.log
+
+# Ignorer passordfila for å unngå å eksponere sensitiv informasjon
+config/passwd
+
+# Ignorer kompilert Python-bytecode
+__pycache__/
+*.pyc
+
+# Ignorer midlertidige filer frå operativsystemet
+.DS_Store
+Thumbs.db
