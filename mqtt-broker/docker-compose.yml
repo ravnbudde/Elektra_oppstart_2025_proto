@@ -6,8 +6,8 @@ services:
     container_name: mosquitto
     restart: unless-stopped
     ports:
-      - "1883:1883"
-      - "9001:9001"
+      - "192.168.1.134:1883:1883" # må gjere IP dynamisk
+      - "192.168.1.134:9001:9001"
     volumes:
       - ./config:/mosquitto/config
       - ./data:/mosquitto/data

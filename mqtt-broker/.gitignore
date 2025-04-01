@@ -13,3 +13,4 @@ __pycache__/
 # Ignorer midlertidige filer frå operativsystemet
 .DS_Store
 Thumbs.db
+mosquitto.log
