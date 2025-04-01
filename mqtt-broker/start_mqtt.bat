@@ -15,7 +15,16 @@ echo.
 echo Venter litt på at containeren skal starte...
 timeout /t 2 >nul
 
-echo Set rettar på mosquitto.db inne i containeren...
+echo Ventar til mosquitto.db eksisterer i containeren...
+
+:wait_db
+docker exec mosquitto sh -c "test -f /mosquitto/data/mosquitto.db" || (
+    timeout /t 1 >nul
+    goto wait_db
+)
+
+echo Fila eksisterer – set rettar...
 docker exec mosquitto chmod 0700 /mosquitto/data/mosquitto.db
+
 
 pause
