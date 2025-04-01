@@ -1,7 +1,10 @@
 // Network SSID and password
 
 
-#define SECRET_SSID "LAPTOP-88QBQHF2 9410" 
-#define SECRET_PASS "G638a|79"
+#define SECRET_SSID "wifi_name" 
+#define SECRET_PASS "wifi_password"
 
-#define UDP_ADDR ""
+#define MQTT_SERVER "ip_mqtt_broker";
+#define MQTT_PORT 1883;
+#define MQTT_USER "mqtt_username"; 
+#define MQTT_PASSWORD "mqtt_password"; 
