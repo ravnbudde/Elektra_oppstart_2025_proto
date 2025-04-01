@@ -1,7 +1,7 @@
 // Network SSID and password
 
 
-#define SECRET_SSID "NTNU01361 8120" 
-#define SECRET_PASS "1747t9C}"
+#define SECRET_SSID "LAPTOP-88QBQHF2 9410" 
+#define SECRET_PASS "G638a|79"
 
-#define UDP_ADDR "192.168.137.1"
+#define UDP_ADDR ""
