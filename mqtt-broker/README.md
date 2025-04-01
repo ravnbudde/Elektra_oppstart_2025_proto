@@ -104,23 +104,58 @@ For å sikre enkel og sikker nettverkstilkobling mellom enheter uten behov for p
 3. **Koble til MQTT-brokeren fra en annen enhet**
    - På klientenheten (f.eks. `bob-1`), bruk Tailscale IP-adressen til serveren for å abonnere eller publisere meldinger
 
+
 ---
 
-## 📚 Testing
-Begge testane kan bli kjørt frå alle enheter som er med i Tailscale nettverket, eller på anna måte har tilgang til den lokale brokeren.
-**Publiser en testmelding fra klientenhet:**
+## 📚 Testing av MQTT-broker
+
+### 🖥️ Lokal testing på same maskin
+
+Desse testane kan du bruke for å sjå om MQTT-brokeren fungerer korrekt **på same maskin** som han køyrer:
+
+**Opne to terminalar på broker-maskina:**
+
+**Abonner på topic (vindauge 1):**
+```bash
+mosquitto_sub -h localhost -t test -u brukernavn -P passord
+```
+
+**Publiser ei melding (vindauge 2):**
+```bash
+mosquitto_pub -h localhost -t test -m "Dette er ei lokal testmelding" -u brukernavn -P passord
+```
+
+> Om alt fungerer, vil meldinga visast i det første terminalvindauget.
+
+> Du kan også bruke `-V mqttv311` dersom du får problem:
+```bash
+mosquitto_pub -h localhost -t test -m "hei" -u brukernamn -P passord -V mqttv311
+```
+
+---
+
+### 🌐 Testing frå annan klient i LAN eller over Tailscale
+
+Begge kommandoane under kan brukast frå ein **annan PC** som har tilgang til MQTT-brokeren over LAN eller Tailscale.
+
+**Publiser ei melding frå klientenhet:**
 ```bash
 mosquitto_pub -h 100.x.x.x -p 1883 -t test -m "Dette er en testmelding" -u brukernavn -P passord
 ```
 
-**Abonner på topic fra klientenhet:**
+**Abonner på topic frå klientenhet:**
 ```bash
 mosquitto_sub -h 100.x.x.x -p 1883 -t test -u brukernavn -P passord
 ```
 
-Bytt ut `100.x.x.x` med Tailscale IP-adressen til MQTT-serveren.
+> Bytt ut `100.x.x.x` med Tailscale-IP eller lokal IP (t.d. `192.168.1.42`) til MQTT-serveren.
 
-*-p PORT er eigentlig unødvendig med mindre du avvike frå 1883 som er standard mqtt-port*
+---
+
+📌 **Merk:**
+- `-p 1883` er eigentleg unødvendig dersom du brukar standardport for MQTT.
+- For testing utan brukarnamn/passord, må du sette `allow_anonymous true` i `mosquitto.conf` og fjerne `-u` og `-P` frå kommandoane.
+
 ---
 
 ## 🔹 Hjelpeskript
