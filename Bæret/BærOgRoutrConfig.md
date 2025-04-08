@@ -16,11 +16,8 @@ SSID: BIAIS_OppstartsVeka
 
 Password: shinyteapot294
 
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
-
 ### BROKER
+-h 192.168.1.3 -u BIAISbroker -P shinyteapot294
 
 Username: BIAISbroker
 
