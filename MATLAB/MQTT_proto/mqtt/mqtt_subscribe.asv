@@ -1,0 +1,59 @@
+function mqtt_subscribe()
+global basetopic
+    % Liste over topic-suffixar og tilhøyrande callbacks
+    topics_callbacks = {
+        "sensors/accel/x",     @accel_x_Callback;
+        "sensors/accel/y",     @accel_y_Callback;
+        "sensors/accel/z",     @accel_z_Callback;
+        "sensors/encoder/left",  @encoder_left_Callback;
+        "sensors/encoder/right", @encoder_right_Callback;
+        "sensors/gyro",        @gyro_Callback;
+        "sensors/line",        @line_Callback;
+    };
+    
+    % Abonner på alle
+    client = mqtt_init();
+    for i = 1:size(topics_callbacks, 1)
+        topic = basetopic + "/" + topics_callbacks{i, 1};
+        callback = topics_callbacks{i, 2};
+        subscribe(client, topic, 'Callback', callback);
+        fprintf("✅ Abonnerte på: %s\n", topic);
+    end
+    
+    disp(client.Subscriptions);
+    
+    % Hald skriptet køyrande
+    disp('📡 Lyttar etter sensorverdier.');
+    lastCheck = tic;  % Start klokke for første sjekk
+    while true
+                    % Sjekk kvart 10. sekund
+            if toc(lastCheck) > 10
+                client = mqtt_init();
+                for i = 1:size(topics_callbacks, 1)
+                    topic = basetopic + "/" + topics_callbacks{i, 1};
+                    callback = topics_callbacks{i, 2};
+                    try
+                        unsubscribe(mqttClient, topic);
+                        pause(0.01);
+                        subscribe(client, topic, 'Callback', callback);
+                    catch
+                        warning("⚠️ Klarte ikkje resubscribere %s", topic);
+                    end
+                end
+                lastCheck = tic;
+            end
+
+        pause(1);
+    end
+
+end
+
+function log(msg)
+    timestamp = datestr(now, 'yyyy-mm-dd HH:MM:SS');
+    fullmsg = sprintf("[%s] %s\n", timestamp, msg);
+    fid = fopen("mqtt_log.txt", "a");
+    if fid ~= -1
+        fprintf(fid, fullmsg);
+        fclose(fid);
+    end
+end
