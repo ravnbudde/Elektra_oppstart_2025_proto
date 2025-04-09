@@ -1,5 +1,5 @@
 function setup(car_id)
-    global basetopic mqttClient
+    global basetopic
     % Vis ID-en til bilen vi kontrollerer
     fprintf("🚗 Setter opp system med car_id = %d\n", car_id);
     % Lagre car_id i base workspace for tilgang seinare
@@ -43,13 +43,18 @@ function setup(car_id)
     sensorData = SensorData();
     sensor_ref("set", sensorData);
     disp(sensor_ref("get"));
-
     
+    % lag ein mqtt client som skal brukast til subscribe (callback) og
+    % sending
+    client = mqtt_init();  % Bruk funksjonen din her, som ønskja
+    assignin("base", "mqttClient", client);
     % Start subscriber
     pause(2);
-    % kjører og init
+    
     mqtt_subscribe();
-
+    send_angle(69);
+    
+    % sim("mqtt_simulink.slx")
 end
 
 
