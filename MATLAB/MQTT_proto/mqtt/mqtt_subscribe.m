@@ -1,10 +1,9 @@
 function mqtt_subscribe()
     global basetopic
-    persistent client  % Held på klienten mellom kall
     
-    % 🔍 Opprett MQTT-klient viss naudsynt
+    persistent client
     if isempty(client) || ~client.Connected
-        client = mqtt_init();  % Bruk funksjonen din her, som ønskja
+        client = evalin("base", "mqttClient");
     end
 
     % Liste over topic-suffixar og tilhøyrande callbacks
@@ -33,7 +32,5 @@ function mqtt_subscribe()
 
     disp(client.Subscriptions);
     disp('📡 Lyttar etter sensorverdier.');
-    while true
-        pause(10);
-        flush(client);
+
 end
