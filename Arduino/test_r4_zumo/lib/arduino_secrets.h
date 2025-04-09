@@ -1,10 +1,10 @@
 // Network SSID and password
 
 
-#define SECRET_SSID "wifi_name" 
-#define SECRET_PASS "wifi_password"
+#define SECRET_SSID "BIAIS_OppstartsVeka" 
+#define SECRET_PASS "shinyteapot294"
 
-#define MQTT_SERVER "ip_mqtt_broker";
+#define MQTT_SERVER "192.168.1.3";
 #define MQTT_PORT 1883;
-#define MQTT_USER "mqtt_username"; 
-#define MQTT_PASSWORD "mqtt_password"; 
+#define MQTT_USER "BIAISbroker"; 
+#define MQTT_PASSWORD "shinyteapot294"; 
