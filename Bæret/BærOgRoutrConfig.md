@@ -1,5 +1,5 @@
 ### BÆRET
-Hostname: BIAIS 
+Hostname: BIAISraspberrypi 
 
 Username: OppstartsVeka
 
@@ -9,10 +9,10 @@ MAC: 2C:CF:67:55:2A:EA
 
 HARDKODA IP PÅ BIAIS_OppstartsVeka nettet: 192.168.1.3
 
-HARDKODE NAVN i ruter :  BIAIS_raspberrypi
+HARDKODE NAVN i ruter :  BIAISraspberrypi
 
 ```bash
-ssh OppstartsVeka@BIAIS.local
+ssh OppstartsVeka@BIAISraspberrypi.local
 ```
 
 ### NETTVERK
@@ -84,12 +84,7 @@ Køyr:
 sudo apt update
 sudo apt install mosquitto-clients
 ```
-
----
-
-### 🚀 Test igjen
-
-Når det er ferdig, prøv på nytt:
+:
 
 ```bash
 mosquitto_pub -h 192.168.1.3 -u BIAISbroker -P shinyteapot294 -t test/topic -m "hei frå broker"
@@ -99,6 +94,18 @@ Og i eit anna terminalvindauge:
 
 ```bash
 mosquitto_sub -h 192.168.1.3 -u BIAISbroker -P shinyteapot294 -t test/topic
+```
+
+eventuelt
+
+```bash
+mosquitto_pub -h BIAISraspberrypi.local -u BIAISbroker -P shinyteapot294 -t test/topic -m "hei frå broker"
+```
+
+Og i eit anna terminalvindauge:
+
+```bash
+mosquitto_sub -h BIAISraspberrypi.local -u BIAISbroker -P shinyteapot294 -t test/topic
 ```
 
 
