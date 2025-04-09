@@ -6,7 +6,7 @@
 class LightReflectanceSensor {
 public:
     // Konstruktør som initialiserer pins og emitter
-    LightReflectanceSensor(const uint8_t* pins, uint8_t count, uint8_t emitterPin = 2);
+    LightReflectanceSensor(uint8_t count = 6, const uint8_t* pins = nullptr, uint8_t emitterPin = 2);
 
     // Destruktør som rydder opp minne
     ~LightReflectanceSensor();
@@ -25,8 +25,6 @@ private:
     const uint8_t* sensorPins; // Pinner til sensorene
     uint8_t numSensors;        // Antall sensorer
     uint8_t emitterPin;        // IR emitter pin
-
-    int last_read = 0;
 
     bool calibrating;          // Om vi er i kalibreringsmodus
 

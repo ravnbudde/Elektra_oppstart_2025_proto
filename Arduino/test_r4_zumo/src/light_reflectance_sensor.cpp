@@ -4,19 +4,26 @@
 #include "..\lib\light_reflectance_sensor.h"
 
 // Konstruktør som initialiserer pins og emitter
-LightReflectanceSensor::LightReflectanceSensor(const uint8_t* pins, uint8_t count, uint8_t emitterPin)
+LightReflectanceSensor::LightReflectanceSensor(uint8_t count, const uint8_t* pins, uint8_t emitterPin)
   : sensorPins(pins), numSensors(count), emitterPin(emitterPin), calibrating(false) {
-  sensorValues = new unsigned int[numSensors];
-  minValues = new unsigned int[numSensors];
-  maxValues = new unsigned int[numSensors];
+    sensorValues = new unsigned int[numSensors];
+    minValues = new unsigned int[numSensors];
+    maxValues = new unsigned int[numSensors];
 
-  for (int i = 0; i < numSensors; i++) {
-    minValues[i] = 10000;
-    maxValues[i] = 0;
-  }
+    for (int i = 0; i < numSensors; i++) {
+        minValues[i] = 10000;
+        maxValues[i] = 0;
+    }
 
-  pinMode(emitterPin, OUTPUT);
-  digitalWrite(emitterPin, HIGH); // IR emitter på
+    if (pins == nullptr) {
+        static const uint8_t defaultPins[] = {4, A3, 11, A0, A2, 5};  // Statisk array
+        this->sensorPins = const_cast<uint8_t*>(defaultPins);  // Konverter til peker
+    } else {
+       this->sensorPins = const_cast<uint8_t*>(pins);  // Bruk de gitte pinsene
+    }
+
+    pinMode(emitterPin, OUTPUT);
+    digitalWrite(emitterPin, HIGH); // IR emitter på
 }
 
 // Destruktør som rydder opp minnet
@@ -43,15 +50,7 @@ void LightReflectanceSensor::read_line() {
 
     this->read_raw(raw_sensors);
 
-    int new_line_value = (1000*raw_sensors[1] + 2000*raw_sensors[2]+3000*raw_sensors[3]+4000*raw_sensors[4] + 5000*raw_sensors[5])/(raw_sensors[0] + raw_sensors[1] + raw_sensors[2] + raw_sensors[3] + raw_sensors[4] + raw_sensors[5]) - 2500;
-
-    if(last_read == 0) {
-        this->line_value = new_line_value;
-    } else {
-        float alpha = float(min(max(2*(millis()-last_read), 200), 500))/1000.0;
-        this->line_value = alpha*new_line_value + (1-alpha)*this->line_value;
-    }
-    this->last_read = millis();
+    this->line_value = (1000*raw_sensors[1] + 2000*raw_sensors[2]+3000*raw_sensors[3]+4000*raw_sensors[4] + 5000*raw_sensors[5])/(raw_sensors[0] + raw_sensors[1] + raw_sensors[2] + raw_sensors[3] + raw_sensors[4] + raw_sensors[5]) - 2500;
 }
 
 // Funksjon for å lese sensordata og skalerer til 0–1000

@@ -4,11 +4,16 @@
 #include <ZumoShield.h>
 #include <WiFiS3.h>
 #include <PubSubClient.h>
-#include <ZumoReflectanceSensorArray.h>
 
 // sett SECRET_SSID = nettverk SSID, SECRET_PASS = nettverk passord i lib/arduino_secrets
 #include "../lib/arduino_secrets.h" 
-// #include "..\lib\pid.h"
+#include "..\lib\pid.h"
+#include "..\lib\light_reflectance_sensor.h"
+
+
+unsigned int values[6]; // Array for å lagre de kalibrerte sensorverdiene
+
+
 
 // WiFi-innstilliner
 char ssid[] = SECRET_SSID;
@@ -21,21 +26,16 @@ char mqtt_password[] = MQTT_PASSWORD;
 int mqtt_port = MQTT_PORT;
 char mqtt_user[] = MQTT_USER; 
 
-const char* mqtt_topic = "zumo_car/14/sensors/accel/x";
-const char* mqtt_topic_recv = "pid/param";
+const char* mqtt_topic = "zumo_car/14/sensors/line";
+const char* mqtt_topic_recv = "zumo_car/14/send_speed";
 
 
+// Oppretter et objekt for LightReflectanceSensor
+LightReflectanceSensor lineSensor;
+ZumoMotors motors;
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
-
-
-#define NUM_SENSORS 6
-unsigned int sensorValues[NUM_SENSORS];
-bool useEmitters = true;
-
 ZumoIMU imu;
-ZumoReflectanceSensorArray reflectanceSensors;
-// PID pid;
 
 
 void setup_WiFI() {
@@ -50,16 +50,10 @@ void setup_WiFI() {
 
 // MQTT callback-funksjon (kjøres når en melding mottas)
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Melding mottatt på ");
-  Serial.print(topic);
-  Serial.print(": ");
-
   // Konverter payload til en C-streng
   char msg[length + 1];
   memcpy(msg, payload, length);
   msg[length] = '\0';
-
-  Serial.println(msg); // Skriv ut den mottatte meldingen
 
   // 1. Tell antall komma
   int comma_count = 0;
@@ -69,18 +63,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
       }
   }
 
-  // 2. Sjekk at det er nøyaktig 2 komma (som gir 3 verdier)
-  if (comma_count != 2) {
-      Serial.println("Feil: Meldingen må ha nøyaktig 2 komma!");
+  // 2. Sjekk at det er nøyaktig 1 komma (som gir 2 verdier)
+  if (comma_count != 1) {
+      Serial.println("Feil: Meldingen må ha nøyaktig 1 komma!");
       return;
   }
 
-  // 3. Splitter strengen og konverterer til float
-  float values[3];
+  // 3. Splitter strengen og konverterer til int
+  int values[2];
   int count = 0;
 
   char* token = strtok(msg, ",");
-  while (token != NULL && count < 3) {
+  while (token != NULL && count < 2) {
       char* endptr;
       values[count] = strtod(token, &endptr); // Bruker strtod() for bedre feilkontroll
 
@@ -96,15 +90,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   // 4. Skriv ut verdiene
-  Serial.print("Ny kp-verdi: ");
+  Serial.print("left motor speed: ");
   Serial.println(values[0], 2);
-  Serial.print("Ny ki-verdi: ");
+  Serial.print("right motor speed: ");
   Serial.println(values[1], 2);
-  Serial.print("Ny kd-verdi: ");
-  Serial.println(values[2], 2);
+
+  motors.setSpeeds(values[0], values[1]);
 }
-
-
 
 
 void MQTT_reconnect() {
@@ -120,15 +112,7 @@ void MQTT_reconnect() {
 }
 
 
-
-
-void setup()
-{
-  Serial.begin(9600);
-  // Koble til internett
-  setup_WiFI();
-
-  // // Sett opp imu sensor i bilen
+void setup_imu_sensors() {
   Wire.begin();
   if (!imu.init())
   {
@@ -140,64 +124,56 @@ void setup()
     }
   }
   imu.enableDefault();
-  Serial.println(F("Succesfully inited TMU sensors."));
+}
 
 
+void calibrate_line_sensor() {
+  // Kalibrering av linje sensor
+  lineSensor.setCalibrate(true);
+  for(uint16_t i = 0; i < 120; i++) {
+    if (i > 30 && i <= 90){
+        motors.setSpeeds(-200, 200);
+    }
+    else{
+        motors.setSpeeds(200, -200);
+    }
+    lineSensor.read_raw(values);
+    delay(20);
+  }
+  motors.setSpeeds(0, 0);
+  // Deaktiver kalibrering etter 5 sekunder
+  lineSensor.setCalibrate(false);
+}
+
+
+void setup()
+{
+  Serial.begin(9600);
+  // Koble til internett
+  setup_WiFI();
+
+  // Sett opp imu sensor i bilen
+  setup_imu_sensors();
   
   // Koble til MQTT server
   client.setServer(mqtt_server, mqtt_port);
   // Sett opp callback for innkommende meldinger
   client.setCallback(callback); 
 
-
-
-
-  reflectanceSensors.init();
-  delay(1000);
-
-  // pid = PID::PID(0.0, 0.0, 0.0, 0.0);
+  // Kalibrer linje sensor
+  calibrate_line_sensor();
 }
 
-// Prints a line with all the sensor readings to the serial
-// monitor.
-void printReadingsToSerial()
-{
-  char buffer[80];
-  // { 4, A3, 11, A0, A2, 5 };
-  sprintf(buffer, "%4d %4d %4d %4d %4d %4d %c\n",
-    sensorValues[0],
-    sensorValues[1],
-    sensorValues[2],
-    sensorValues[3],
-    sensorValues[4],
-    sensorValues[5],
-    useEmitters ? 'E' : 'e'
-  );
-  Serial.print(buffer);
-}
 
 void loop()
 {
   static uint16_t lastSampleTime = 0;
 
-  if ((uint16_t)(millis() - lastSampleTime) >= 100)
+  if ((uint16_t)(millis() - lastSampleTime) > 100)
   {
-    lastSampleTime = millis();
-
-    // Read the reflectance sensors.
-    reflectanceSensors.read(sensorValues, useEmitters ? QTR_EMITTERS_ON : QTR_EMITTERS_OFF);
-
-    // Send the results to the serial monitor.
-    printReadingsToSerial();
+    lineSensor.read_line();
   }
   
-  if(imu.accDataReady()){
-    imu.read();
-    Serial.print("Ny data!!  ");
-    Serial.println(String(imu.a.x) + ", " + String(imu.a.y) + ", " + String(imu.a.z));
-  }
-
-
 
   // /*_____ MQTT _____*/
   if(!client.connected()) {
@@ -208,12 +184,11 @@ void loop()
   // Publiser en melding hvert 0.1. sekund
   static unsigned long lastMsg = 0;
   if (millis() - lastMsg > 100) {
-      lastMsg = millis();
-      client.publish(mqtt_topic, "69"); 
+    lastMsg = millis();
+    String lineValueStr = String(lineSensor.line_value);  // Konverter int til String
+    client.publish(mqtt_topic, lineValueStr.c_str());
   }
-  
-
-  // pid.run_pid();
 }
+
 
 
