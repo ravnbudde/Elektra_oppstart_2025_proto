@@ -49,7 +49,7 @@ global basetopic;
     % Start subscriber
     pause(2);
     % f = parfeval(backgroundPool, @mqtt_subscribe, 0);
-    parfeval(@mqtt_subscribe, 0);
+    % parfeval(@mqtt_subscribe, 0);
 
 
 end

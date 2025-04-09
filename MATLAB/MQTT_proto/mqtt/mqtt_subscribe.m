@@ -37,7 +37,11 @@ function mqtt_subscribe()
             log(sprintf(" - %s → %s", subs.Topic(i), subs.Callback{i}));
         end
     end
-
+    
+    disp(mqttClient.Subscriptions);
+    
+    % Hald skriptet køyrande
+    disp('📡 Lyttar etter sensorverdier. Trykk Ctrl+C for å avslutte.');
     log('📡 Lyttar etter sensorverdier...');
 
     % Loop for å halde prosessen i live
