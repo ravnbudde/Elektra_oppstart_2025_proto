@@ -9,6 +9,11 @@ MAC: 2C:CF:67:55:2A:EA
 
 HARDKODA IP PÅ BIAIS_OppstartsVeka nettet: 192.168.1.3
 
+HARDKODE NAVN i ruter :  BIAIS_raspberrypi
+
+```bash
+ssh OppstartsVeka@BIAIS.local
+```
 
 ### NETTVERK
 
@@ -95,3 +100,5 @@ Og i eit anna terminalvindauge:
 ```bash
 mosquitto_sub -h 192.168.1.3 -u BIAISbroker -P shinyteapot294 -t test/topic
 ```
+
+
