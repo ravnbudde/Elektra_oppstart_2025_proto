@@ -26,8 +26,11 @@ char mqtt_password[] = MQTT_PASSWORD;
 int mqtt_port = MQTT_PORT;
 char mqtt_user[] = MQTT_USER; 
 
-const char* mqtt_topic = "zumo_car/14/sensors/line";
-const char* mqtt_topic_recv = "zumo_car/14/send_speed";
+
+
+const char* mqtt_line = "zumo_car/" CAR_ID "/sensors/line";
+const char* mqtt_topic_recv = "zumo_car/" CAR_ID "/speed";
+
 
 
 // Oppretter et objekt for LightReflectanceSensor
@@ -64,17 +67,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   // 2. Sjekk at det er nøyaktig 1 komma (som gir 2 verdier)
-  if (comma_count != 1) {
-      Serial.println("Feil: Meldingen må ha nøyaktig 1 komma!");
+  if (comma_count != 2) {
+      Serial.println("Feil: Meldingen må ha nøyaktig 2 komma!");
       return;
   }
 
   // 3. Splitter strengen og konverterer til int
-  int values[2];
+  int values[3];
   int count = 0;
 
   char* token = strtok(msg, ",");
-  while (token != NULL && count < 2) {
+  while (token != NULL && count < 3) {
       char* endptr;
       values[count] = strtod(token, &endptr); // Bruker strtod() for bedre feilkontroll
 
@@ -90,12 +93,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   // 4. Skriv ut verdiene
-  Serial.print("left motor speed: ");
+  Serial.print("Melding fra: ");
   Serial.println(values[0], 2);
-  Serial.print("right motor speed: ");
+  Serial.print("left motor speed: ");
   Serial.println(values[1], 2);
+  Serial.print("right motor speed: ");
+  Serial.println(values[2], 2);
 
-  motors.setSpeeds(values[0], values[1]);
+  motors.setSpeeds(values[1], values[2]);
 }
 
 
@@ -186,7 +191,7 @@ void loop()
   if (millis() - lastMsg > 100) {
     lastMsg = millis();
     String lineValueStr = String(lineSensor.line_value);  // Konverter int til String
-    client.publish(mqtt_topic, lineValueStr.c_str());
+    client.publish(mqtt_line, lineValueStr.c_str());
   }
 }
 
