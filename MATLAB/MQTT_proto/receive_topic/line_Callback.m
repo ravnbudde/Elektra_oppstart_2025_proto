@@ -1,5 +1,5 @@
 function line_Callback(topic, data)
-    global line;
-    line = str2double(data);
+    sensorData = SensorStorage.getSensor();
+    sensorData.line = str2double(data);
     fprintf("[line] %s\n", data);
 end

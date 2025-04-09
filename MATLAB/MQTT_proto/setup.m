@@ -1,5 +1,4 @@
 function setup(car_id)
-global basetopic;
     % Vis ID-en til bilen vi kontrollerer
     fprintf("🚗 Setter opp system med car_id = %d\n", car_id);
     % Lagre car_id i base workspace for tilgang seinare
@@ -25,12 +24,26 @@ global basetopic;
         addpath(sendPath);
         savepath;
     end
+    getPath = fullfile(projectRoot, 'get_topic');
+    if ~contains(path, getPath)
+        addpath(getPath);
+        savepath;
+    end
     receivePath = fullfile(projectRoot, 'receive_topic');
     if ~contains(path, receivePath)
         addpath(receivePath);
         savepath;
     end
-    
+    sensorPath = fullfile(projectRoot, 'Sensors');
+    if ~contains(path, sensorPath)
+        addpath(sensorPath);
+        savepath;
+    end
+    sensorData = SensorData();
+    sensor_ref("set", sensorData);
+    disp(sensor_ref("get"));
+
+
     % Kjør MQTT-init
     try
         mqtt_init();
@@ -40,22 +53,16 @@ global basetopic;
     end
 
     
-    % Initialiser globale strukturar
-    global accel encoder gyro line;
-    accel = struct('x', NaN, 'y', NaN, 'z', NaN);
-    encoder = struct('left', NaN, 'right', NaN);
-    gyro = NaN;
-    line = NaN;
+    
     % Start subscriber
     pause(2);
     % f = parfeval(backgroundPool, @mqtt_subscribe, 0);
     % parfeval(@mqtt_subscribe, 0);
-
+    mqtt_subscribe(mqtt_init());
 
 end
 
-function mqtt_init()
-global mqttClient;
+function client =  mqtt_init()
     % MQTT-klientoppsett
     client = mqttclient("tcp://192.168.1.3", ...
         Port=1883, ...

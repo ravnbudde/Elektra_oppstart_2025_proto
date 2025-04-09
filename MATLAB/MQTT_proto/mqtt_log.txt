@@ -46,3 +46,63 @@
 [2025-04-09 14:07:52]  - sensors/accel/x → accelCallback
 [2025-04-09 14:07:52]  - zumo_car/14/sensors/accel/x → accelCallback
 [2025-04-09 14:07:52] 📡 Lyttar etter sensorverdier...
+[2025-04-09 16:46:03] 📥 Startar mqtt_subscribe
+[2025-04-09 16:46:03] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/x: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:03] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/y: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:03] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/z: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:03] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/left: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:03] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/right: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:03] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/gyro: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:03] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/line: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:03] 📋 Aktive abonnement:
+[2025-04-09 16:46:03]  - sensors/accel/x → accelCallback
+[2025-04-09 16:46:03]  - zumo_car/14/sensors/accel/x → accelCallback
+[2025-04-09 16:46:03] 📡 Lyttar etter sensorverdier...
+[2025-04-09 16:46:51] 📥 Startar mqtt_subscribe
+[2025-04-09 16:46:51] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/x: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:51] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/y: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:51] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/z: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:51] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/left: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:51] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/right: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:51] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/gyro: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:51] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/line: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:46:51] 📋 Aktive abonnement:
+[2025-04-09 16:46:51]  - sensors/accel/x → accelCallback
+[2025-04-09 16:46:51]  - zumo_car/14/sensors/accel/x → accelCallback
+[2025-04-09 16:46:51] 📡 Lyttar etter sensorverdier...
+[2025-04-09 16:47:27] 📥 Startar mqtt_subscribe
+[2025-04-09 16:47:27] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/x: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:47:27] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/y: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:47:27] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/z: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:47:27] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/left: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:47:27] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/right: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:47:27] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/gyro: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:47:27] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/line: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:47:27] 📋 Aktive abonnement:
+[2025-04-09 16:47:27]  - sensors/accel/x → accelCallback
+[2025-04-09 16:47:27]  - zumo_car/14/sensors/accel/x → accelCallback
+[2025-04-09 16:47:27] 📡 Lyttar etter sensorverdier...
+[2025-04-09 16:55:19] 📥 Startar mqtt_subscribe
+[2025-04-09 16:55:19] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/x: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:55:19] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/y: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:55:19] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/z: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:55:19] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/left: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:55:19] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/right: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:55:19] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/gyro: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:55:19] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/line: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 16:55:19] 📋 Aktive abonnement:
+[2025-04-09 16:55:19]  - sensors/accel/x → accelCallback
+[2025-04-09 16:55:19]  - zumo_car/14/sensors/accel/x → accelCallback
+[2025-04-09 16:55:19] 📡 Lyttar etter sensorverdier...
+[2025-04-09 17:03:07] 📥 Startar mqtt_subscribe
+[2025-04-09 17:03:07] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/x: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 17:03:07] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/y: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 17:03:07] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/accel/z: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 17:03:07] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/left: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 17:03:07] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/encoder/right: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 17:03:07] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/gyro: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 17:03:07] ❌ Klarte ikkje abonnere på zumo_car/14/sensors/line: Unable to subscribe when the MQTT client is not connected. Use mqttclient to create a new connection.
+[2025-04-09 17:03:07] 📋 Aktive abonnement:
+[2025-04-09 17:03:07]  - sensors/accel/x → accelCallback
+[2025-04-09 17:03:07]  - zumo_car/14/sensors/accel/x → accelCallback
+[2025-04-09 17:03:07] 📡 Lyttar etter sensorverdier...

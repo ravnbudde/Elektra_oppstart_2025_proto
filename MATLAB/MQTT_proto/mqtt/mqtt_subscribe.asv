@@ -1,13 +1,13 @@
 function mqtt_subscribe(client)
     % Liste over topic-suffixar og tilhøyrande callbacks
     topics_callbacks = {
-        "sensors/accel/x",     @accel_x_Callback;
-        "sensors/accel/y",     @accel_y_Callback;
-        "sensors/accel/z",     @accel_z_Callback;
-        "sensors/encoder/left",  @encoder_left_Callback;
-        "sensors/encoder/right", @encoder_right_Callback;
-        "sensors/gyro",        @gyro_Callback;
-        "sensors/line",        @line_Callback;
+        "sensors/accel/x",     @(t,d) accel_x_Callback(t,d,sensorData.accel.x);
+        "sensors/accel/y",     @(t,d) accel_y_Callback(t,d,sensorData);
+        "sensors/accel/z",     @(t,d) accel_z_Callback(t,d,sensorData);
+        "sensors/encoder/left",  @(t,d) encoder_left_Callback(t,d,sensorData);
+        "sensors/encoder/right", @(t,d) encoder_right_Callback(t,d,sensorData);
+        "sensors/gyro",        @(t,d) gyro_Callback(t,d,sensorData);
+        "sensors/line",        @(t,d) line_Callback(t,d,sensorData);
     };
     
     % Abonner på alle
@@ -21,10 +21,10 @@ function mqtt_subscribe(client)
     disp(client.Subscriptions);
     
     % Hald skriptet køyrande
-    disp('📡 Lyttar etter sensorverdier.');
-    % while true
-    %     pause(1);
-    % end
+    disp('📡 Lyttar etter sensorverdier. Trykk Ctrl+C for å avslutte.');
+    while true
+        pause(1);
+    end
 
 end
 
