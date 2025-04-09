@@ -1,20 +1,21 @@
-function mqtt_send(topic_suffix, value)
-    % Hent MQTT-klient frå base (persistent cache)
+function mqtt_send(topic_suffix, varargin)
+    % Hent MQTT-klient
     persistent client
     if isempty(client) || ~client.Connected
         client = evalin("base", "mqttClient");
     end
 
-    % Hent basetopic og my_id frå workspace
+    % Hent topic og ID
     basetopic = evalin("base", "basetopic");
     my_id = evalin("base", "my_id");
-
-    % Lag full topic
     topic = basetopic + "/" + topic_suffix;
 
-    % Lag melding: "my_id,verdi"
-    message = sprintf("%d,%f", my_id, value);
+    % Bygg meldinga: start med ID, legg til alle verdiar
+    message = sprintf("%d", my_id);
+    for k = 1:numel(varargin)
+        message = message + "," + string(varargin{k});
+    end
 
-    % Send
+    % Send meldinga
     write(client, topic, message);
 end
