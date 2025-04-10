@@ -46,7 +46,7 @@ const float PID::get_ki(){
 
 
 void PID::run_pid() {
-    if (millis()-this->last_instant < 100) {
+    if (millis()-this->last_instant < 10) {
         return;
     }
     this->update_e();
@@ -55,18 +55,21 @@ void PID::run_pid() {
     this->last_instant = millis();
 
 
-    this->u_left = 200- (this->Kp * this->e +
-                    this->Ki * this->integral +
-                    this->Kd * this->derivat);
-
-    this->u_right = 200+ (this->Kp * this->e +
-                    this->Ki * this->integral +
-                    this->Kd * this->derivat);
+    speed_diff = int(Kp * e) + int(Ki * integral) + int(Kd * derivat);
     
-    Serial.println(e);
-    Serial.print(u_left);
+    Serial.print(y);
     Serial.print('\t');
-    Serial.println(u_right);
+    Serial.print(e);
+    Serial.print('\t');
+    Serial.println(speed_diff);
+
+    left_speed = DEFAULT_SPEED - speed_diff;
+    right_speed = DEFAULT_SPEED + speed_diff;
+
+    if (left_speed < -DEFAULT_SPEED) left_speed = -DEFAULT_SPEED;
+    if (left_speed > DEFAULT_SPEED) left_speed = DEFAULT_SPEED;
+    if (right_speed < -DEFAULT_SPEED) right_speed = -DEFAULT_SPEED;
+    if (right_speed > DEFAULT_SPEED) right_speed = DEFAULT_SPEED;
 }
 
 
@@ -86,6 +89,6 @@ void PID::update_integral() {
 
 void PID::update_derivat() {
     float sec = this->get_time_elapsed();
-    this->derivat = (this->e - this->prev_e)/sec;
+    this->derivat = (this->e - this->prev_e)*sec;
 }
 

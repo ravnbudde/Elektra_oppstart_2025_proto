@@ -1,6 +1,9 @@
 #pragma once
 #include <Arduino.h>
 
+#define DEFAULT_SPEED 150
+#define MAX_SPEED 400
+
 class PID {
     float Kp;
     float Kd;
@@ -12,6 +15,8 @@ class PID {
     int last_instant;    
     float integral = 0;
     float derivat = 0;
+    
+    int speed_diff = 0;
 
     void update_e();
     void update_integral();
@@ -20,8 +25,8 @@ class PID {
     
 public:
     float y = 0;
-    int u_left = 0;
-    int u_right = 0;
+    int left_speed = DEFAULT_SPEED;
+    int right_speed = DEFAULT_SPEED;
 
     PID(float kp, float ki, float kd, float r);
 

@@ -40,7 +40,7 @@ ZumoMotors motors;
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 ZumoIMU imu;
-PID pid(0.1, 0.0, 0.0, 0.0);
+PID pid(0.25, 0.0, 3, 0.0);
 
 void setup_WiFI() {
   WiFi.begin(ssid, password);
@@ -229,6 +229,10 @@ void setup()
   // Sett opp callback for innkommende meldinger
   client.setCallback(callback); 
 
+  if(!client.connected()) {
+    MQTT_reconnect();
+  }
+
   // Kalibrer linje sensor
   calibrate_line_sensor();
 }
@@ -260,10 +264,7 @@ void loop()
 
   pid.y = lineSensor.line_value;
   pid.run_pid();
-
-
-
-  motors.setSpeeds(pid.u_left, pid.u_right);
+  motors.setSpeeds(pid.left_speed, pid.right_speed);
 }
 
 
