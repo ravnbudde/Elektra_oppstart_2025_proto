@@ -2,7 +2,7 @@ function client = mqtt_init()
     % MQTT-klientoppsett
     % Vel broker mode:
     % 1 = localhost, 2 = lokal broker (192.168.1.3), 3 = HiveMQ
-    broker_case = 2;
+    broker_case = 1;
 
     % Sett opp broker basert på val
     switch broker_case

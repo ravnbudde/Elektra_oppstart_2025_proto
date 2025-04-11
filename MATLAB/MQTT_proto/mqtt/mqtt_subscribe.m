@@ -8,6 +8,7 @@ function mqtt_subscribe()
 
     % Liste over topic-suffixar og tilhøyrande callbacks
     topics_callbacks = {
+        "sensors/accel",         @accel_Callback;
         "sensors/accel/x",       @accel_x_Callback;
         "sensors/accel/y",       @accel_y_Callback;
         "sensors/accel/z",       @accel_z_Callback;
