@@ -45,12 +45,12 @@ function setup(car_id, broker, pw)
     
     % lag ein mqtt client som skal brukast til subscribe (callback) og
     % sending
-    client = mqtt_init();  % Bruk funksjonen din her, som ønskja
+    client = mqtt_init_case_shit();  % Bruk funksjonen din her, som ønskja
     assignin("base", "mqttClient", client);
     % Start subscriber
     pause(2);
     
-    mqtt_subscribe();
+    mqtt_subscribe_old();
     send_angle(69);
     
     % sim("mqtt_simulink.slx")

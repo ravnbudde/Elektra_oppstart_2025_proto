@@ -1,4 +1,4 @@
-function client = mqtt_clientInit(broker_address, port, varargin)
+function client = mqtt_initClient(broker_address, port, varargin)
     % MQTT-klientoppsett med fleksibel brokerkonfigurasjon
     % broker_address: t.d. 'tcp://localhost' eller 'ssl://broker.hivemq.com'
     % port: heiltal, t.d. 1883 eller 8883
