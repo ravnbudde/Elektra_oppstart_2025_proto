@@ -8,14 +8,14 @@ function mqtt_subscribe()
 
     % Liste over topic-suffixar og tilhøyrande callbacks
     topics_callbacks = {
-        "sensors/accel",         @accel_Callback;
-        "sensors/accel/x",       @accel_x_Callback;
-        "sensors/accel/y",       @accel_y_Callback;
-        "sensors/accel/z",       @accel_z_Callback;
-        "sensors/encoder/left",  @encoder_left_Callback;
-        "sensors/encoder/right", @encoder_right_Callback;
-        "sensors/gyro",          @gyro_Callback;
-        "sensors/line",          @line_Callback;
+        "accel",         @accel_Callback;
+        "accel/x",       @accel_x_Callback;
+        "accel/y",       @accel_y_Callback;
+        "accel/z",       @accel_z_Callback;
+        "encoder/left",  @encoder_left_Callback;
+        "encoder/right", @encoder_right_Callback;
+        "gyro",          @gyro_Callback;
+        "line",          @line_Callback;
     };
 
     % Abonner på alle

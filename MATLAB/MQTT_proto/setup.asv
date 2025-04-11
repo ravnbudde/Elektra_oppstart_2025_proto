@@ -1,4 +1,5 @@
 function setup(car_id, broker, pw)
+    global basetopic
     % Vis ID-en til bilen vi kontrollerer
     fprintf("🚗 Setter opp system med car_id = %d\n", car_id);
     % Lagre car_id i base workspace for tilgang seinare
