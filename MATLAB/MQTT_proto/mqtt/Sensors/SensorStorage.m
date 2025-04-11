@@ -7,7 +7,7 @@ classdef SensorStorage
         function out = getSensor()
             persistent shared
             if isempty(shared)
-                warning("🔴 SensorStorage er tom! Har du kalla setSensor()?")
+                warning("SensorStorage er tom! Har du kalla setSensor()?")
                 out = [];
             else
                 out = shared;

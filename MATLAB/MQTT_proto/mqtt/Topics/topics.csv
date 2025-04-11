@@ -1,5 +1,4 @@
 accel
-accel/x
-accel/y
 gyro
-encoder/left
+encoder
+line
