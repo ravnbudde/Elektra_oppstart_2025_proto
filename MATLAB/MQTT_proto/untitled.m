@@ -89,10 +89,10 @@ end
 
 %% Recive stuff
 
-function [x, y, z] = read_accel_xyz()
-    coder.extrinsic('get_accel_xyz');
+function [x, y, z] = read_accel()
+    coder.extrinsic('get_accel');
     x = 0; y = 0; z = 0;
-    [x, y, z] = get_accel_xyz();
+    [x, y, z] = get_accel();
 end
 
 function accel = read_accel()
