@@ -2,4 +2,3 @@
 projectRoot = fileparts(mfilename('fullpath'));
 addpath(genpath(projectRoot));
 disp(['[startup.m] Path lagt til: ' projectRoot]);
-

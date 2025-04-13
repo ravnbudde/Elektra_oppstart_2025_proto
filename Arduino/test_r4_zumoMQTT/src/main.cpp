@@ -22,7 +22,7 @@ void setup_WiFi() {
     Serial.print(".");
     delay(500);
   }
-  Serial.println(" tilkobla.");
+  Serial.println(" tilkobla .");
 }
 
 void setup_IMU() {
