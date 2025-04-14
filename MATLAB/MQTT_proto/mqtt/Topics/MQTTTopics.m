@@ -2,6 +2,7 @@ classdef MQTTTopics
     enumeration
         accel    ('accel')
         gyro     ('gyro')
+        mag      ('mag')
         line     ('line')
         encoder  ('encoder')
     end

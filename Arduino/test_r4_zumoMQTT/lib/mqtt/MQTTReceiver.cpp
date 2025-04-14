@@ -14,10 +14,10 @@ void MQTTReceiver::setClient(PubSubClient* c) {
 void MQTTReceiver::subscribeAll() {
     if (!client) return;
 
-    client->subscribe("/cmd");
-    client->subscribe("/pid");
-    client->subscribe("/speed");
-    client->subscribe("/penalty");
+    client->subscribe(SUB_CMD);
+    client->subscribe(SUB_PID);
+    client->subscribe(SUB_SPEED);
+    client->subscribe(SUB_PENALTY);
 }
 
 void MQTTReceiver::registerHandler(const String& topic, std::function<void(String)> handler) {
@@ -36,16 +36,34 @@ void MQTTReceiver::dispatch(const String& topic, const String& message) {
     if (active_id.length() == 0) {
         active_id = incoming_id;
     } else if (incoming_id != active_id) {
-        // Feil ID – meld frå til feil-topic
         if (client && client->connected()) {
-            String err = "conflict: got " + incoming_id + " but active is " + active_id;
-            client->publish(("zumo_car/" + active_id + "/error").c_str(), err.c_str());
+            String json = "{";
+            json += "\"conflict\":true,";
+            json += "\"expected\":\"" + active_id + "\",";
+            json += "\"received\":\"" + incoming_id + "\",";
+            json += "\"topic\":\"" + topic + "\"";
+            json += "}";
+
+            client->publish("OpstartsVeka/error", json.c_str());
         }
         return;
     }
 
+    // Dersom ID er OK → køyre handler
     auto it = topicHandlers.find(topic);
     if (it != topicHandlers.end()) {
-        it->second(payload);  // kall callback med BARE meldinga
+        it->second(payload);  // kall callback med berre meldinga
     }
+}
+void MQTTReceiver::handleMessage(char* topic, byte* payload, unsigned int length) {
+    if (!client) return;
+
+    String topicStr(topic);
+    String message((char*)payload, length);
+
+    // Sjekk om det er en gyldig melding
+    if (message.length() == 0) return;
+
+    // Kall dispatch-funksjonen
+    instance->dispatch(topicStr, message);
 }

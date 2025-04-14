@@ -8,6 +8,10 @@
 #include "../lib/mqtt/MQTTManager.h"
 #include "../lib/mqtt/mqtt_topics.h"
 
+
+#include <Arduino_LED_Matrix.h>
+ArduinoLEDMatrix matrix;
+
 // Globale objekt
 WiFiClient wifiClient;
 MQTTManager mqtt;
@@ -40,6 +44,7 @@ void setup() {
   Serial.begin(115200);
   setup_WiFi();
   setup_IMU();
+  matrix.begin();
 
   mqtt.init(wifiClient, MQTT_SERVER, MQTT_PORT, MQTT_USER, MQTT_PASSWORD);
 }
@@ -50,10 +55,11 @@ void loop() {
   static unsigned long last = 0;
   if (millis() - last > 500) {
     last = millis();
+    imu.read();
 
-    imu.readGyro();
     mqtt.send.gyro(imu.g);
-    Serial.println("Gyro sendt");
+    mqtt.send.accel(imu.a);
+    mqtt.send.mag(imu.m);
   }
 
   if (mqtt.receive.last_cmd.length() > 0) {
@@ -61,4 +67,20 @@ void loop() {
     Serial.println(mqtt.receive.last_cmd);
     mqtt.receive.last_cmd = "";  // nullstill
   }
+  if (mqtt.receive.last_pid.length() > 0) {
+    Serial.print("Mottok PID: ");
+    Serial.println(mqtt.receive.last_pid);
+    mqtt.receive.last_pid = "";  // nullstill
+  }
+  if (mqtt.receive.last_speed.length() > 0) {
+    Serial.print("Mottok fart: ");
+    Serial.println(mqtt.receive.last_speed);
+    mqtt.receive.last_speed = "";  // nullstill
+  }
+  if (mqtt.receive.last_penalty.length() > 0) {
+    Serial.print("Mottok straff: ");
+    Serial.println(mqtt.receive.last_penalty);
+    mqtt.receive.last_penalty = "";  // nullstill
+  }
+
 }

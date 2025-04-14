@@ -1,6 +1,7 @@
 #pragma once
-#include <PubSubClient.h>
+
 #include <Arduino.h>
+#include <PubSubClient.h>
 #include <functional>
 #include <map>
 
@@ -9,22 +10,25 @@ public:
     MQTTReceiver();
 
     void setClient(PubSubClient* client);
-    void subscribeAll();
+    void subscribeAll();  // Abonner på alle faste topic
     void registerHandler(const String& topic, std::function<void(String)> handler);
-    void dispatch(const String& topic, const String& message);
-
-    // Sist mottatte verdiar (valfritt å bruke)
+    void dispatch(const String& topic, const String& message);  // Kall rett callback
+    void handleMessage(char* topic, byte* payload, unsigned int length);
+    
+    // Sist mottatte verdiar – lagra for enkel bruk
     String last_cmd;
     String last_pid;
     String last_speed;
     String last_penalty;
 
-    String active_id = "";  // lagra ID frå første melding
+    // ID-kontroll
+    String active_id = "";  // Lagrar første ID vi fekk – alle må matche denne
 
-
-    static MQTTReceiver* instance; // trengs for staticCallback
+    // Brukt for static callback frå PubSubClient
+    static MQTTReceiver* instance;
 
 private:
     PubSubClient* client;
     std::map<String, std::function<void(String)>> topicHandlers;
+
 };
