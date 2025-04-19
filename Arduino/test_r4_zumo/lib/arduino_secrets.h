@@ -9,10 +9,10 @@
 
 
 // IP of server with mqtt broker
-#define MQTT_SERVER "192.168.1.3";
+#define MQTT_SERVER "192.168.1.3"
 // Port to MQTT at server
 #define MQTT_PORT 1883;
 // Username for MQTT
-#define MQTT_USER "BIAISbroker"; 
+#define MQTT_USER "BIAISbroker" 
 // Password for MQTT
-#define MQTT_PASSWORD "shinyteapot294"; 
+#define MQTT_PASSWORD "shinyteapot294" 
