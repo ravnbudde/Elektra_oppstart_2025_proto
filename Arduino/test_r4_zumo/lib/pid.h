@@ -30,6 +30,8 @@ public:
 
     PID(float kp, float ki, float kd, float r);
 
+    void reset();
+
     void set_kp(float kp);
     void set_kd(float kd);
     void set_ki(float ki);

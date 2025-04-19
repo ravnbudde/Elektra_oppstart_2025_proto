@@ -2,6 +2,7 @@
 #define LIGHT_REFLECTANCE_SENSOR_H
 
 #include <Arduino.h>
+#include <ZumoShield.h>
 
 class LightReflectanceSensor {
 public:
@@ -19,6 +20,8 @@ public:
 
     void read_line();
 
+    void calibrate_line_sensor(ZumoMotors motor);
+
     int line_value = 0;
 
 private:
@@ -28,9 +31,13 @@ private:
 
     bool calibrating;          // Om vi er i kalibreringsmodus
 
+    unsigned int rawValues[6]; // Array for å lagre de kalibrerte sensorverdiene
     unsigned int* sensorValues; // Råverdier fra sensorene
     unsigned int* minValues;    // Minste verdier for kalibrering
     unsigned int* maxValues;    // Største verdier for kalibrering
 };
+
+
+
 
 #endif // LIGHT_REFLECTANCE_SENSOR_H

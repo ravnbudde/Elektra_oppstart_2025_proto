@@ -45,6 +45,25 @@ void LightReflectanceSensor::setCalibrate(bool enable) {
   }
 }
 
+void LightReflectanceSensor::calibrate_line_sensor(ZumoMotors motor) 
+{
+    // Kalibrering av linje sensor
+    setCalibrate(true);
+    for(uint16_t i = 0; i < 120; i++) {
+        if (i > 30 && i <= 90){
+            motor.setSpeeds(-200, 200);
+        }
+        else{
+            motor.setSpeeds(200, -200);
+        }
+        read_raw(rawValues);
+        delay(20);
+    }
+    motor.setSpeeds(0, 0);
+    // Deaktiver kalibrering etter 5 sekunder
+    setCalibrate(false);
+}
+
 void LightReflectanceSensor::read_line() {
     unsigned int raw_sensors[6];
 

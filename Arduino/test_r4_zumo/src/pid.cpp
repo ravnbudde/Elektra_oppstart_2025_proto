@@ -8,6 +8,13 @@ PID::PID(float kp, float ki, float kd, float r) {
     this->last_instant = millis();
 }
 
+void PID::reset() {
+    this->last_instant = millis();
+    this->integral = 0;
+    this->prev_e = 0;
+    this->e = 0;
+}
+
 void PID::set_kp(float kp){
     this->Kp = kp;
 }
@@ -57,11 +64,11 @@ void PID::run_pid() {
 
     speed_diff = int(Kp * e) + int(Ki * integral) + int(Kd * derivat);
     
-    Serial.print(y);
-    Serial.print('\t');
-    Serial.print(e);
-    Serial.print('\t');
-    Serial.println(speed_diff);
+    // Serial.print(y);
+    // Serial.print('\t');
+    // Serial.print(e);
+    // Serial.print('\t');
+    // Serial.println(speed_diff);
 
     left_speed = DEFAULT_SPEED - speed_diff;
     right_speed = DEFAULT_SPEED + speed_diff;
