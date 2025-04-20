@@ -33,6 +33,12 @@ void MQTTSender::encoders(int16_t left, int16_t right) {
     publish(TOPIC_ENCODERS, payload);
 }
 
+void MQTTSender::line(int16_t lineVal)
+{
+    String payload = String(lineVal);
+    publish(TOPIC_LINE, payload);
+}
+
 // --- Generisk subtopic-publisering ---
 
 void MQTTSender::msg(const char* topic_suffix, const String& payload) {

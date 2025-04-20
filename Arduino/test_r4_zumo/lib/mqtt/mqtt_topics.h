@@ -7,6 +7,7 @@
 #define TOPIC_ACCEL    BASE_TOPIC "/accel"
 #define TOPIC_MAG      BASE_TOPIC "/mag"
 #define TOPIC_ENCODERS BASE_TOPIC "/encoders"
+#define TOPIC_LINE     BASE_TOPIC "/line"
 
 #define TOPIC_MSG      BASE_TOPIC "/msg"
 #define TOPIC_VAL      BASE_TOPIC "/val"

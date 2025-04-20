@@ -12,6 +12,7 @@ public:
     void mag(ZumoIMU::vector<int16_t> v);
 
     void encoders(int16_t left, int16_t right);
+    void line(int16_t lineVal);
     void msg(const char* topic_suffix, const String& payload);
 
 private:
