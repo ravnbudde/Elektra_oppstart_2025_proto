@@ -110,3 +110,15 @@ Døme på slike element:
 - **(De)Mux**: for å forstå og handtere arrays i signalbanar
 - **Scope**, **Display** og liknande for sanntidsvisning
 - Potensielt fleire nyttige verktøy som dukkar opp undervegs
+
+
+### Simulink biblotek for mqtt
+
+<p float="left">
+  <img src="MatlabSimulinkBibloPic\init.png" width="30%" />
+  <img src="MatlabSimulinkBibloPic\read.png" width="30%" />
+  <img src="MatlabSimulinkBibloPic\send.png" width="30%" />
+</p>
+
+### Video av "flow"
+<video controls src="pitch_oppstartsveka.mp4" title="Title"></video>
