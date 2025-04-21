@@ -114,10 +114,12 @@ Døme på slike element:
 
 ### Simulink biblotek for mqtt
 
-<p float="left">
-  <img src="MatlabSimulinkBibloPic\init.png" width="30%" />
-  <img src="MatlabSimulinkBibloPic\read.png" width="30%" />
-  <img src="MatlabSimulinkBibloPic\send.png" width="30%" />
+<p float="center">
+  <img src="MatlabSimulinkBibloPic\init.png" width="35%" />
+  <img src="MatlabSimulinkBibloPic\read.png" width="43.65%" />
+</p>
+<p float="center">
+  <img src="MatlabSimulinkBibloPic\send.png" width="79%" />
 </p>
 
 ### Video av "flow"
