@@ -76,8 +76,8 @@ void FSM::handle_command(CommandPair&& command)
         {
             // Serial.println("Setter reg param til " + String(command.parameters[0]) + String(command.parameters[1]) + String(command.parameters[2]) );
             pid.set_kp(command.parameters[0]);
-            pid.set_kp(command.parameters[1]);
-            pid.set_kp(command.parameters[2]);
+            pid.set_ki(command.parameters[1]);
+            pid.set_kd(command.parameters[2]);
         } else 
         {
             // Burde kanskje sende en melding til error topic her istedenfor seriell printing
