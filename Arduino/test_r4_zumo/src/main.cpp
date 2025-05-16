@@ -4,6 +4,7 @@
 #include <ZumoShield.h>
 #include <WiFiS3.h>
 #include <PubSubClient.h>
+#include <Arduino_FreeRTOS.h>
 
 #include "../lib/arduino_secrets.h" 
 #include "../lib/mqtt/MQTTManager.h"
@@ -21,6 +22,18 @@ MQTTManager mqtt;
 WiFiClient wifiClient;
 ZumoIMU imu;
 FSM fsm;
+
+
+// Handles til tråder.
+#define PID_STACK_SIZE 1024/4
+#define FSM_STACK_SIZE 2048/4
+
+TaskHandle_t pid_handle = NULL;
+BaseType_t pid_returned;
+TaskHandle_t fsm_handle = NULL;
+BaseType_t fsm_returned;
+
+
 
 void setup_WiFI() {
   WiFi.begin(SECRET_SSID_WIFI, SECRET_PASS_WIFI);
@@ -47,121 +60,153 @@ void setup_imu_sensors() {
   imu.enableDefault();
 }
 
-
+TickType_t last_wake_time;
+void scoop(void * pvArg);
 
 void setup()
 {
   Serial.begin(115200);
-  // Koble til internett
+  // // Koble til internett
   setup_WiFI();
 
-  // Sett opp imu sensor i bilen
+  // // Sett opp imu sensor i bilen
   setup_imu_sensors();
   
-  // Koble til MQTT server
+  // // Koble til MQTT server
   mqtt.init(wifiClient, MQTT_SERVER, MQTT_PORT, MQTT_USER, MQTT_PASSWORD);
 
   Serial.println("Ferdig med setup");
+ 
+  // Sett opp tasks
+  pid_returned = xTaskCreate(
+    run_controller,
+    "PID_TASK",
+    PID_STACK_SIZE,
+    NULL,
+    tskIDLE_PRIORITY + 1,
+    &pid_handle
+  );
+
+  fsm_returned = xTaskCreate(
+    scoop,
+    "FSM_TASK",
+    FSM_STACK_SIZE,
+    NULL,
+    tskIDLE_PRIORITY,
+    &fsm_handle
+  );
+
+  last_wake_time = xTaskGetTickCount();
+  vTaskStartScheduler();
+
 }
 
+void loop() {}
 
-void loop()
+void scoop(void * pvArg)
 {
-  // Koble til mqtt om du ikke allerede er det
-  mqtt.loop();
-
-  lineSensor.read_line();
-  // Kjør PID
-  pid.y = lineSensor.line_value;
-  pid.run_pid();
-  // Kjør FSM loop
-  fsm.loop();
-
-
-  /*_____ Les IMU + send sensorverdier _____ */
-  static unsigned long lastSampleTime = 0;
-  if ((millis() - lastSampleTime) > 100)
+  for ( ;; )
   {
-    // Les
-    imu.read();
+    vTaskDelayUntil( &last_wake_time, pdMS_TO_TICKS(100));
 
-    // Send
-    // mqtt.send.gyro(imu.g);
-    // mqtt.send.accel(imu.a);
-    // mqtt.send.mag(imu.m);
-    // // TODO: NB!!! Trenger en kanal for å sende linje også her!
-    // mqtt.send.line(lineSensor.line_value); //ikkje testa, men bør funke
-
-    lastSampleTime = millis();
-  }
-
-
-  /*_____ Behandle MQTT meldinger _____*/
-  if (mqtt.receive.last_cmd.length() > 0) {
-    Serial.print("Mottok kommando: ");
-    Serial.println(mqtt.receive.last_cmd);
+    Serial.println("Scoop loop");
     
-    ZumoCommand cmd = ZumoCommand::NONE;
-
-    if(mqtt.receive.last_cmd == "penalty")
-    {
-      cmd = ZumoCommand::START_PENALTY;
-    } else if (mqtt.receive.last_cmd == "calibrate")
-    {
-      cmd = ZumoCommand::START_CALIBRATE;
-    } else if (mqtt.receive.last_cmd == "mode")
-    {
-      cmd = ZumoCommand::TOGGLE_MODE;
-    }
+    // Koble til mqtt om du ikke allerede er det
+    mqtt.loop();
     
-
-    // Prøv å push commanden i FSM, send error melding om buffer er fylt opp
-    if(!fsm.append_command(CommandPair(cmd, nullptr, 0)))
-    {
-      Serial.println("For mange commands i bufferet!");
-    }
-
-    mqtt.receive.last_cmd = "";  // nullstill
-  }
-
-  if (mqtt.receive.last_pid.length() > 0) {
-    Serial.print("Mottok PID: ");
-    Serial.println(mqtt.receive.last_pid);
-
-    // Gjør om pid sin string "float, float, float" til faktiske floats
-    std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_pid);
-
-    if(!fsm.append_command(CommandPair(ZumoCommand::SET_REG_PARAM, parsed_msg.first, parsed_msg.second)))
-    {
-      Serial.println("For mange commands i bufferet!");
-    }
-
-    mqtt.receive.last_pid = "";  // nullstill
-  }
-
-  if (mqtt.receive.last_speed.length() > 0) {
-    Serial.print("Mottok fart: ");
-    Serial.println(mqtt.receive.last_speed);
-
-    std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_speed);
-
-    if(!fsm.append_command(CommandPair(ZumoCommand::SET_MAN_SPEED, parsed_msg.first, parsed_msg.second)))
-    {
-      Serial.println("For mange commands i bufferet!");
-    }
-
-    mqtt.receive.last_speed = "";  // nullstill
-  }
+    lineSensor.read_line();
+    // Kjør PID
+    pid.set_y(lineSensor.line_value);
+    // Kjør FSM loop
+    fsm.loop();
   
-  if (mqtt.receive.last_penalty.length() > 0) {
-    Serial.print("Mottok straff: ");
-    Serial.println(mqtt.receive.last_penalty);
-    
-    if(!fsm.append_command(CommandPair(ZumoCommand::START_PENALTY, nullptr, 0)))
+  
+    /*_____ Les IMU + send sensorverdier _____ */
+    static unsigned long lastSampleTime = 0;
+    if ((millis() - lastSampleTime) > 100)
     {
-      Serial.println("For mange commands i bufferet!");
+      // Les
+      imu.read();
+  
+      // Send
+      // mqtt.send.gyro(imu.g);
+      // mqtt.send.accel(imu.a);
+      // mqtt.send.mag(imu.m);
+      // // TODO: NB!!! Trenger en kanal for å sende linje også her!
+      // mqtt.send.line(lineSensor.line_value); //ikkje testa, men bør funke
+  
+      lastSampleTime = millis();
     }
-    mqtt.receive.last_penalty = "";  // nullstill
+  
+  
+    /*_____ Behandle MQTT meldinger _____*/
+    if (mqtt.receive.last_cmd.length() > 0) {
+      Serial.print("Mottok kommando: ");
+      Serial.println(mqtt.receive.last_cmd);
+      
+      ZumoCommand cmd = ZumoCommand::NONE;
+  
+      if(mqtt.receive.last_cmd == "penalty")
+      {
+        cmd = ZumoCommand::START_PENALTY;
+      } else if (mqtt.receive.last_cmd == "calibrate")
+      {
+        cmd = ZumoCommand::START_CALIBRATE;
+      } else if (mqtt.receive.last_cmd == "mode")
+      {
+        cmd = ZumoCommand::TOGGLE_MODE;
+      }
+      
+  
+      // Prøv å push commanden i FSM, send error melding om buffer er fylt opp
+      if(!fsm.append_command(CommandPair(cmd, nullptr, 0)))
+      {
+        Serial.println("For mange commands i bufferet!");
+      }
+  
+      mqtt.receive.last_cmd = "";  // nullstill
+    }
+  
+    if (mqtt.receive.last_pid.length() > 0) {
+      Serial.print("Mottok PID: ");
+      Serial.println(mqtt.receive.last_pid);
+  
+      // Gjør om pid sin string "float, float, float" til faktiske floats
+      std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_pid);
+  
+      if(!fsm.append_command(CommandPair(ZumoCommand::SET_REG_PARAM, parsed_msg.first, parsed_msg.second)))
+      {
+        Serial.println("For mange commands i bufferet!");
+      }
+  
+      mqtt.receive.last_pid = "";  // nullstill
+    }
+  
+    if (mqtt.receive.last_speed.length() > 0) {
+      Serial.print("Mottok fart: ");
+      Serial.println(mqtt.receive.last_speed);
+  
+      std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_speed);
+  
+      if(!fsm.append_command(CommandPair(ZumoCommand::SET_MAN_SPEED, parsed_msg.first, parsed_msg.second)))
+      {
+        Serial.println("For mange commands i bufferet!");
+      }
+  
+      mqtt.receive.last_speed = "";  // nullstill
+    }
+    
+    if (mqtt.receive.last_penalty.length() > 0) {
+      Serial.print("Mottok straff: ");
+      Serial.println(mqtt.receive.last_penalty);
+      
+      if(!fsm.append_command(CommandPair(ZumoCommand::START_PENALTY, nullptr, 0)))
+      {
+        Serial.println("For mange commands i bufferet!");
+      }
+      mqtt.receive.last_penalty = "";  // nullstill
+    }
+
   }
 
 

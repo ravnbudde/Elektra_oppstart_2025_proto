@@ -5,64 +5,123 @@ PID::PID(float kp, float ki, float kd, float r) {
     this->Ki = ki;
     this->Kd = kd;
     this->r = r;
-    this->last_instant = millis();
+    this-> y_mutex = xSemaphoreCreateBinary();
+    this-> speed_mutex = xSemaphoreCreateBinary();
+    this-> ref_mutex = xSemaphoreCreateBinary();
+    this-> param_mutex = xSemaphoreCreateBinary();
+
+    xSemaphoreGive(y_mutex);
+    xSemaphoreGive(speed_mutex);
+    xSemaphoreGive(ref_mutex);
+    xSemaphoreGive(param_mutex);
 }
 
 void PID::reset() {
-    this->last_instant = millis();
     this->integral = 0;
     this->prev_e = 0;
     this->e = 0;
 }
 
 void PID::set_kp(float kp){
+    xSemaphoreTake(this->param_mutex, portMAX_DELAY);
     this->Kp = kp;
+    xSemaphoreGive(this->param_mutex);
 }
 
 void PID::set_kd(float kd){
+    xSemaphoreTake(this->param_mutex, portMAX_DELAY);
     this->Kd = kd;
+    xSemaphoreGive(this->param_mutex);
 }
 
 void PID::set_ki(float ki){
+    xSemaphoreTake(this->param_mutex, portMAX_DELAY);
     this->Ki = ki;
+    xSemaphoreGive(this->param_mutex);
 }
 
 void PID::set_ref(float ref) {
+    xSemaphoreTake(this->ref_mutex, portMAX_DELAY);
     this->r = ref;
+    xSemaphoreGive(this->ref_mutex);
 }
 
-float PID::get_time_elapsed(){
-    float elapsed = (millis() - this->last_instant)/1000;
-    return elapsed;
+void PID::set_y(float y) {
+    xSemaphoreTake(this->y_mutex, portMAX_DELAY);
+    this->y = y;
+    xSemaphoreGive(this->y_mutex);
+}
+
+void PID::set_rspeed(int rspeed) {
+    xSemaphoreTake(this->speed_mutex, portMAX_DELAY);
+    this->right_speed = rspeed;
+    xSemaphoreGive(this->speed_mutex);
+}
+
+void PID::set_lspeed(int lspeed) {
+    xSemaphoreTake(this->speed_mutex, portMAX_DELAY);
+    this->left_speed = lspeed;
+    xSemaphoreGive(this->speed_mutex);
+}
+    
+
+float PID::get_y() const {
+    xSemaphoreTake(this->y_mutex, portMAX_DELAY);
+    float temp = this->y;
+    xSemaphoreGive(this->y_mutex);
+    return temp;
 }
 
 
-
-
-const float PID::get_kp(){
-    return this->Kp;
+float PID::get_kp() const{
+    xSemaphoreTake(this->param_mutex, portMAX_DELAY);
+    float temp = this->Kp;
+    xSemaphoreGive(this->param_mutex);
+    return temp;
 }
 
-const float PID::get_kd(){
-    return this->Kd;
+float PID::get_kd() const{
+    xSemaphoreTake(this->param_mutex, portMAX_DELAY);
+    float temp = this->Kd;
+    xSemaphoreGive(this->param_mutex);
+    return temp;
 }
 
-const float PID::get_ki(){
-    return this->Ki;
+float PID::get_ki() const{
+    xSemaphoreTake(this->param_mutex, portMAX_DELAY);
+    float temp = this->Kd;
+    xSemaphoreGive(this->param_mutex);
+    return temp;
 }
 
+float PID::get_ref() const{
+    xSemaphoreTake(this->param_mutex, portMAX_DELAY);
+    float temp = this->r;
+    xSemaphoreGive(this->param_mutex);
+    return temp;
+}
+
+int PID::get_rspeed() const {
+    xSemaphoreTake(this->speed_mutex, portMAX_DELAY);
+    float temp = this->right_speed;
+    xSemaphoreGive(this->speed_mutex);
+    return temp;
+}
+
+int PID::get_lspeed() const {
+    xSemaphoreTake(this->speed_mutex, portMAX_DELAY);
+    float temp = this->left_speed;
+    xSemaphoreGive(this->speed_mutex);
+    return temp;
+}
 
 void PID::run_pid() {
-    if (millis()-this->last_instant < 10) {
-        return;
-    }
     this->update_e();
     this->update_integral();
     this->update_derivat();
-    this->last_instant = millis();
 
 
-    speed_diff = int(Kp * e) + int(Ki * integral) + int(Kd * derivat);
+    this->speed_diff = int(this->Kp * this->e) + int(this->Ki * this->integral) + int(this->Kd * this->derivat);
     
     // Serial.print(y);
     // Serial.print('\t');
@@ -70,15 +129,31 @@ void PID::run_pid() {
     // Serial.print('\t');
     // Serial.println(speed_diff);
 
-    left_speed = DEFAULT_SPEED - speed_diff;
-    right_speed = DEFAULT_SPEED + speed_diff;
+    this->left_speed = DEFAULT_SPEED - this->speed_diff;
+    this->right_speed = DEFAULT_SPEED + this->speed_diff;
 
-    if (left_speed < -DEFAULT_SPEED) left_speed = -DEFAULT_SPEED;
-    if (left_speed > DEFAULT_SPEED) left_speed = DEFAULT_SPEED;
-    if (right_speed < -DEFAULT_SPEED) right_speed = -DEFAULT_SPEED;
-    if (right_speed > DEFAULT_SPEED) right_speed = DEFAULT_SPEED;
+    if (this->left_speed < -DEFAULT_SPEED) this->left_speed = -DEFAULT_SPEED;
+    if (this->left_speed > DEFAULT_SPEED) this->left_speed = DEFAULT_SPEED;
+    if (this->right_speed < -DEFAULT_SPEED) this->right_speed = -DEFAULT_SPEED;
+    if (this->right_speed > DEFAULT_SPEED) this->right_speed = DEFAULT_SPEED;
 }
 
+void run_controller(void * pvParameters) {
+    TickType_t last_wake_time;
+    const TickType_t freq = pdMS_TO_TICKS(1000*TS);
+    last_wake_time = xTaskGetTickCount();
+    
+    
+    for (;;)
+    {
+        Serial.println(" PID loop");
+        
+
+        vTaskDelayUntil( &last_wake_time, freq);
+        pid.run_pid();
+    }
+
+}
 
 
 
@@ -90,12 +165,10 @@ void PID::update_e() {
 }
 
 void PID::update_integral() {
-    float sec = this->get_time_elapsed();
-    this->integral += this->e * sec;
+    this->integral += this->e * TS;
 }
 
 void PID::update_derivat() {
-    float sec = this->get_time_elapsed();
-    this->derivat = (this->e - this->prev_e)*sec;
+    this->derivat = (this->e - this->prev_e)*TS;
 }
 

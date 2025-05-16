@@ -41,7 +41,6 @@ void MQTTManager::loop() {
 void MQTTManager::attachCallbacks() {
     addSubscription(SUB_CMD, [this](const String& msg) {
         receive.last_cmd = msg;
-        // TODO: trigga evt. handling
     });
 
     addSubscription(SUB_PID, [this](const String& msg) {

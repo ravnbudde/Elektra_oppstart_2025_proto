@@ -97,8 +97,8 @@ void FSM::execute_state() {
     case ZumoStates::NORMAL:
         if(mode == ZumoMode::AUTO)
         {
-            motors.setLeftSpeed(pid.left_speed);
-            motors.setRightSpeed(pid.right_speed);
+            motors.setLeftSpeed(pid.get_lspeed());
+            motors.setRightSpeed(pid.get_rspeed());
         } else 
         {
             motors.setLeftSpeed(manuel_motor_speeds[0]);
@@ -108,14 +108,12 @@ void FSM::execute_state() {
 
     case ZumoStates::CALIBRATING:
         lineSensor.calibrate_line_sensor(motors);
-        pid.reset();
         state = ZumoStates::NORMAL;
         break;
     
     case ZumoStates::PENALTY:
         motors.setSpeeds(MAX_SPEED, -MAX_SPEED);
         delay(DELAY_PERIOD);
-        pid.reset();
         state = ZumoStates::NORMAL;
         break;
 
