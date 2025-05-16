@@ -70,11 +70,15 @@ void loop()
   // Koble til mqtt om du ikke allerede er det
   mqtt.loop();
 
+  lineSensor.read_line();
+  // Kjør PID
+  pid.y = lineSensor.line_value;
+  pid.run_pid();
   // Kjør FSM loop
   fsm.loop();
 
-  /*_____ Les + send sensorverdier _____ */
-  lineSensor.read_line();
+
+  /*_____ Les IMU + send sensorverdier _____ */
   static unsigned long lastSampleTime = 0;
   if ((millis() - lastSampleTime) > 100)
   {
@@ -82,11 +86,11 @@ void loop()
     imu.read();
 
     // Send
-    mqtt.send.gyro(imu.g);
-    mqtt.send.accel(imu.a);
-    mqtt.send.mag(imu.m);
-    // TODO: NB!!! Trenger en kanal for å sende linje også her!
-    mqtt.send.line(lineSensor.line_value); //ikkje testa, men bør funke
+    // mqtt.send.gyro(imu.g);
+    // mqtt.send.accel(imu.a);
+    // mqtt.send.mag(imu.m);
+    // // TODO: NB!!! Trenger en kanal for å sende linje også her!
+    // mqtt.send.line(lineSensor.line_value); //ikkje testa, men bør funke
 
     lastSampleTime = millis();
   }
@@ -96,9 +100,23 @@ void loop()
   if (mqtt.receive.last_cmd.length() > 0) {
     Serial.print("Mottok kommando: ");
     Serial.println(mqtt.receive.last_cmd);
+    
+    ZumoCommand cmd = ZumoCommand::NONE;
+
+    if(mqtt.receive.last_cmd == "penalty")
+    {
+      cmd = ZumoCommand::START_PENALTY;
+    } else if (mqtt.receive.last_cmd == "calibrate")
+    {
+      cmd = ZumoCommand::START_CALIBRATE;
+    } else if (mqtt.receive.last_cmd == "mode")
+    {
+      cmd = ZumoCommand::TOGGLE_MODE;
+    }
+    
 
     // Prøv å push commanden i FSM, send error melding om buffer er fylt opp
-    if(!fsm.append_command(mqtt.receive.last_cmd))
+    if(!fsm.append_command(CommandPair(cmd, nullptr, 0)))
     {
       Serial.println("For mange commands i bufferet!");
     }
@@ -109,19 +127,40 @@ void loop()
   if (mqtt.receive.last_pid.length() > 0) {
     Serial.print("Mottok PID: ");
     Serial.println(mqtt.receive.last_pid);
+
+    // Gjør om pid sin string "float, float, float" til faktiske floats
+    std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_pid);
+
+    if(!fsm.append_command(CommandPair(ZumoCommand::SET_REG_PARAM, parsed_msg.first, parsed_msg.second)))
+    {
+      Serial.println("For mange commands i bufferet!");
+    }
+
     mqtt.receive.last_pid = "";  // nullstill
   }
 
   if (mqtt.receive.last_speed.length() > 0) {
     Serial.print("Mottok fart: ");
     Serial.println(mqtt.receive.last_speed);
+
+    std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_speed);
+
+    if(!fsm.append_command(CommandPair(ZumoCommand::SET_MAN_SPEED, parsed_msg.first, parsed_msg.second)))
+    {
+      Serial.println("For mange commands i bufferet!");
+    }
+
     mqtt.receive.last_speed = "";  // nullstill
   }
   
   if (mqtt.receive.last_penalty.length() > 0) {
     Serial.print("Mottok straff: ");
     Serial.println(mqtt.receive.last_penalty);
-    fsm.append_command("penalty");
+    
+    if(!fsm.append_command(CommandPair(ZumoCommand::START_PENALTY, nullptr, 0)))
+    {
+      Serial.println("For mange commands i bufferet!");
+    }
     mqtt.receive.last_penalty = "";  // nullstill
   }
 

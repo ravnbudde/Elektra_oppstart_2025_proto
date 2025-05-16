@@ -1,5 +1,5 @@
 function send_PID(kp, ki, kd)
-    mqtt_send("pid", int16(kp), int16(ki), int16(kd));
+    mqtt_send("pid", double(kp), double(ki), double(kd));
 end
 %% Simulink MATLAB function for sende alle PID-parametra saman
 % function publish_PID(kp, ki, kd)
