@@ -8,17 +8,26 @@
 #define DELAY_PERIOD 5000
 
 
+/**
+ * @brief Enum for å skille modus bilen er i.
+ */
 enum ZumoMode {
     AUTO, 
     MANUEL
 };
 
+/**
+ * @brief Enum for å skille hvilken status bilen er i.
+ */
 enum ZumoStates {
     NORMAL,
     PENALTY,
     CALIBRATING
 };
 
+/**
+ * @brief Enum for å skille ulike typer commandoer fra hverandre. (kommandoer fra MQTT)
+ */
 enum ZumoCommand {
     START_PENALTY,
     START_CALIBRATE,
@@ -28,6 +37,16 @@ enum ZumoCommand {
     NONE
 };
 
+/**
+ * @brief Pakker en `ZumoCommand` med tilhørende parametre
+ * 
+ * `CommandPair` tar eierskap til `parameters`-pekeren, og vil automatisk frigjøre minnet i destruktøren. 
+ * Derfor er kopiering eksplisitt deaktivert (copy constructor og copy assignment er slettet) for å unngå dobbelt sletting og usikker minnehåndtering.
+ * 
+ * Flytting (move constructor og move assignment) er støttet og overfører eierskap trygt. Etter flytting vil det opprinnelige objektet ha en nullpeker og lengde satt til 0.
+ * 
+ * Dette gjør det trygt å bruke `CommandPair` som en unik beholder for kommando + data, der minnet ikke deles mellom flere instanser.
+ */
 struct CommandPair {
     ZumoCommand cmd;
     float* parameters;
@@ -41,13 +60,11 @@ struct CommandPair {
     }
 
    
-    // Fjerner muligheten for kopiering av CommandPair for å unngå 
-    // dobbelt-sletting av dynamisk allokert minne. 
-    // Dette sikrer at eierskap til 'parameters' alltid er entydig,
-    // og at dereferering av pekeren er trygt.
+    // Forbyr kopiering for å unngå dobbelt-sletting
     CommandPair(const CommandPair&) = delete;
     CommandPair& operator=(const CommandPair&) = delete;
 
+    // Tillater flytting – overfører eierskap
     CommandPair(CommandPair&& other) noexcept
         : cmd(other.cmd), parameters(other.parameters), length(other.length) {
         other.parameters = nullptr;
@@ -67,6 +84,14 @@ struct CommandPair {
     }
 };
 
+
+/**
+ * @brief Enkel finite-state-maachine for zumobilen i oppgaven
+ * 
+ * FSMen kan gis `CommandPair`s gjennom `append_command`, og vil handle deretter.
+ * 
+ * @todo Trenger bedre navn
+ */
 class FSM
 {
 private:
@@ -84,7 +109,24 @@ public:
     FSM();
     ~FSM();
 
+    /**
+     * @brief Funksjon for å gi kommandoer til FSMen
+     * 
+     * @param command `CommandPair` kommandoen som skal legges til. Eierskap flyttes
+     * 
+     * @return `true` dersom kommandoen blir lagt til vellykket, `false` hvis køen er full
+     */
     bool append_command(CommandPair&& command);
+
+    /**
+     * @brief Funksjon som leser kommandoer i køen og handler basert på statesA0
+     * 
+     * Funksjonen leser første kommandoen i køen om det finnes noen, oppdaterer states, og handler basert på hvilken state den er i.
+     * 
+     * @note Det er ikke egentlig en loop enda. den må bare kalles på i en loop. Hvor ofte den kalles er litt opp til brukeren, men det vil leses en kommando per kall, og setting av fart til motorene på bilen skjer også her. Anbefales å kalle på i ?10? ms intervall for å sikre at alle kommandoer blir behandlet.  
+     * 
+     * @todo Bytt navn eller fiks loop
+     */
     void loop();
 };
 

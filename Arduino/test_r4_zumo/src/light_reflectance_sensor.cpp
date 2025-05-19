@@ -6,24 +6,24 @@
 // Konstruktør som initialiserer pins og emitter
 LightReflectanceSensor::LightReflectanceSensor(uint8_t count, const uint8_t* pins, uint8_t emitterPin)
   : sensorPins(pins), numSensors(count), emitterPin(emitterPin), calibrating(false) {
-    sensorValues = new unsigned int[numSensors];
-    minValues = new unsigned int[numSensors];
-    maxValues = new unsigned int[numSensors];
+  sensorValues = new unsigned int[numSensors];
+  minValues = new unsigned int[numSensors];
+  maxValues = new unsigned int[numSensors];
 
-    for (int i = 0; i < numSensors; i++) {
-        minValues[i] = 10000;
-        maxValues[i] = 0;
-    }
+  for (int i = 0; i < numSensors; i++) {
+      minValues[i] = 10000;
+      maxValues[i] = 0;
+  }
 
-    if (pins == nullptr) {
-        static const uint8_t defaultPins[] = {4, A3, 11, A0, A2, 5};  // Statisk array
-        this->sensorPins = const_cast<uint8_t*>(defaultPins);  // Konverter til peker
-    } else {
-       this->sensorPins = const_cast<uint8_t*>(pins);  // Bruk de gitte pinsene
-    }
+  if (pins == nullptr) {
+      static const uint8_t defaultPins[] = {4, A3, 11, A0, A2, 5};  // Default pins
+      this->sensorPins = const_cast<uint8_t*>(defaultPins); 
+  } else {
+      this->sensorPins = const_cast<uint8_t*>(pins);  // Bruk de gitte pinsene
+  }
 
-    pinMode(emitterPin, OUTPUT);
-    digitalWrite(emitterPin, HIGH); // IR emitter på
+  pinMode(emitterPin, OUTPUT);
+  digitalWrite(emitterPin, HIGH); // IR emitter på
 }
 
 // Destruktør som rydder opp minnet
@@ -47,32 +47,31 @@ void LightReflectanceSensor::setCalibrate(bool enable) {
 
 void LightReflectanceSensor::calibrate_line_sensor(ZumoMotors motor) 
 {
-    // Kalibrering av linje sensor
-    setCalibrate(true);
-    for(uint16_t i = 0; i < 120; i++) {
-        if (i > 30 && i <= 90){
-            motor.setSpeeds(-200, 200);
-        }
-        else{
-            motor.setSpeeds(200, -200);
-        }
-        read_raw(rawValues);
-        delay(20);
-    }
-    motor.setSpeeds(0, 0);
-    // Deaktiver kalibrering etter 5 sekunder
-    setCalibrate(false);
+  // Kalibrering av linje sensor
+  setCalibrate(true);
+  for(uint16_t i = 0; i < 120; i++) {
+      if (i > 30 && i <= 90){
+          motor.setSpeeds(-200, 200);
+      }
+      else{
+          motor.setSpeeds(200, -200);
+      }
+      read_raw(rawValues);
+      delay(20);
+  }
+  motor.setSpeeds(0, 0);
+  // Deaktiver kalibrering etter 5 sekunder
+  setCalibrate(false);
 }
 
 void LightReflectanceSensor::read_line() {
-    unsigned int raw_sensors[6];
+  unsigned int raw_sensors[6];
 
-    this->read_raw(raw_sensors);
+  this->read_raw(raw_sensors);
 
-    this->line_value = (1000*raw_sensors[1] + 2000*raw_sensors[2]+3000*raw_sensors[3]+4000*raw_sensors[4] + 5000*raw_sensors[5])/(raw_sensors[0] + raw_sensors[1] + raw_sensors[2] + raw_sensors[3] + raw_sensors[4] + raw_sensors[5]) - 2500;
+  this->line_value = (1000*raw_sensors[1] + 2000*raw_sensors[2]+3000*raw_sensors[3]+4000*raw_sensors[4] + 5000*raw_sensors[5])/(raw_sensors[0] + raw_sensors[1] + raw_sensors[2] + raw_sensors[3] + raw_sensors[4] + raw_sensors[5]) - 2500;
 }
 
-// Funksjon for å lese sensordata og skalerer til 0–1000
 void LightReflectanceSensor::read_raw(unsigned int* output) {
   // 1. Slå på sensorene
   for (int i = 0; i < numSensors; i++) {

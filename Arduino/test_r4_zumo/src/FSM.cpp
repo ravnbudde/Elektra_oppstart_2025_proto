@@ -126,10 +126,8 @@ void FSM::execute_state() {
 
 void FSM::loop()
 {
-    /* Oppdater states i FSM */
     handle_command(std::move(recieve_command()));
     execute_state();
-
 }
 
 

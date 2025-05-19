@@ -121,22 +121,18 @@ void PID::run_pid() {
     this->update_derivat();
 
 
-    this->speed_diff = int(this->Kp * this->e) + int(this->Ki * this->integral) + int(this->Kd * this->derivat);
-    
-    // Serial.print(y);
-    // Serial.print('\t');
-    // Serial.print(e);
-    // Serial.print('\t');
-    // Serial.println(speed_diff);
+    this->speed_diff = int(get_kp() * this->e) + int(get_ki() * this->integral) + int(get_kd() * this->derivat);
 
-    this->left_speed = DEFAULT_SPEED - this->speed_diff;
-    this->right_speed = DEFAULT_SPEED + this->speed_diff;
+    float temp_left = DEFAULT_SPEED - this->speed_diff;
+    float temp_right = DEFAULT_SPEED + this->speed_diff;
 
-    if (this->left_speed < -DEFAULT_SPEED) this->left_speed = -DEFAULT_SPEED;
-    if (this->left_speed > DEFAULT_SPEED) this->left_speed = DEFAULT_SPEED;
-    if (this->right_speed < -DEFAULT_SPEED) this->right_speed = -DEFAULT_SPEED;
-    if (this->right_speed > DEFAULT_SPEED) this->right_speed = DEFAULT_SPEED;
+    if (temp_left < -DEFAULT_SPEED) set_lspeed(-DEFAULT_SPEED);
+    if (temp_left > DEFAULT_SPEED) set_lspeed(DEFAULT_SPEED);
+    if (temp_right < -DEFAULT_SPEED) set_rspeed(-DEFAULT_SPEED);
+    if (temp_right > DEFAULT_SPEED) set_rspeed(DEFAULT_SPEED);
 }
+
+
 
 void run_controller(void * pvParameters) {
     TickType_t last_wake_time;
