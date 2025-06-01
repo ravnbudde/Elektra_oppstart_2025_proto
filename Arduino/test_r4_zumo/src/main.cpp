@@ -129,11 +129,11 @@ void scoop(void * pvArg)
       imu.read();
   
       // Send
-      // mqtt.send.gyro(imu.g);
-      // mqtt.send.accel(imu.a);
-      // mqtt.send.mag(imu.m);
+      mqtt.send.gyro(imu.g);
+      mqtt.send.accel(imu.a);
+      mqtt.send.mag(imu.m);
       // // TODO: NB!!! Trenger en kanal for å sende linje også her!
-      // mqtt.send.line(lineSensor.line_value); //ikkje testa, men bør funke
+      mqtt.send.line(lineSensor.line_value); //ikkje testa, men bør funke
   
       lastSampleTime = millis();
     }
