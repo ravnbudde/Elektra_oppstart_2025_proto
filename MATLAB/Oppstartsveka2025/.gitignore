@@ -1,0 +1,52 @@
+# ================================
+# MATLAB .gitignore
+# ================================
+
+# Midlertidige filer
+*.asv
+*.m~
+*.bak
+*.tmp
+*.swp
+*.autosave
+
+# MATLAB cache / kompilerte filer
+*.mex*
+*.p              # P-code (obfuscated .m files)
+*.log
+*.mat            # Datafiler (valfritt – fjern om du vil dele)
+*.fig            # GUI-figurar (valfritt)
+*.slxc           # Kompilerte modeller
+*.slxcx          # Embedded Coder-filer
+
+# Simulink filer og genererte artefakt
+*.slprj/
+*.sldd           # Simulink data dictionary
+*.sfx            # System Composer artifacts
+*.mdl.rtw
+*_rtw/
+*_grt_rtw/
+*_ert_rtw/
+*.buildinfo
+*.codework
+*.xpc            # xPC Target files
+*.rsim/
+*.tlc
+
+# MATLAB App Designer
+*.mlappinstall
+*.mlapp
+
+# User-specific
+*.mlsettings
+*.prj
+*.mldatx         # Live Editor data
+*.mlx            # Live scripts (valfritt – ignorer berre om du ikkje vil dele)
+
+# OS-filer
+.DS_Store
+Thumbs.db
+
+# Git metadata for MATLAB projects (personleg)
+*.gitlab
+*.gitattributes
