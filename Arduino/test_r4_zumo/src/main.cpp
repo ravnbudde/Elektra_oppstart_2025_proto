@@ -21,7 +21,8 @@ bool newMessage = false;  // Flag for å indikere om en ny melding er mottatt
 MQTTManager mqtt;
 WiFiClient wifiClient;
 ZumoIMU imu;
-FSM fsm;
+ZumoCommandHandler commandHandler;
+ZumoMotors motors;
 
 
 // Handles til tråder.
@@ -122,8 +123,16 @@ void scoop(void * pvArg)
     lineSensor.read_line();
     // Kjør PID
     pid.set_y(lineSensor.line_value);
-    // Kjør FSM loop
-    fsm.loop();
+    
+    // Kjør FSM
+    // TODO: flytt til egen tråd, skal være helt trygt å gjøre nå, må bare gjøres
+    commandHandler.handle_last_command();
+    
+    //Sett fart på motorene:
+    std::pair<int, int> speeds = commandHandler.get_wanted_motor_speed();
+    motors.setLeftSpeed(speeds.first);
+    motors.setRightSpeed(speeds.second);
+
   
   
     /*_____ Les IMU + send sensorverdier _____ */
@@ -164,7 +173,7 @@ void scoop(void * pvArg)
       
   
       // Prøv å push commanden i FSM, send error melding om buffer er fylt opp
-      if(!fsm.append_command(CommandPair(cmd, nullptr, 0)))
+      if(!commandHandler.append_command(CommandPair(cmd, nullptr, 0)))
       {
         Serial.println("For mange commands i bufferet!");
       }
@@ -179,7 +188,7 @@ void scoop(void * pvArg)
       // Gjør om pid sin string "float, float, float" til faktiske floats
       std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_pid);
   
-      if(!fsm.append_command(CommandPair(ZumoCommand::SET_REG_PARAM, parsed_msg.first, parsed_msg.second)))
+      if(!commandHandler.append_command(CommandPair(ZumoCommand::SET_REG_PARAM, parsed_msg.first, parsed_msg.second)))
       {
         Serial.println("For mange commands i bufferet!");
       }
@@ -193,7 +202,7 @@ void scoop(void * pvArg)
   
       std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_speed);
   
-      if(!fsm.append_command(CommandPair(ZumoCommand::SET_MAN_SPEED, parsed_msg.first, parsed_msg.second)))
+      if(!commandHandler.append_command(CommandPair(ZumoCommand::SET_MAN_SPEED, parsed_msg.first, parsed_msg.second)))
       {
         Serial.println("For mange commands i bufferet!");
       }
@@ -205,7 +214,7 @@ void scoop(void * pvArg)
       Serial.print("Mottok straff: ");
       Serial.println(mqtt.receive.last_penalty);
       
-      if(!fsm.append_command(CommandPair(ZumoCommand::START_PENALTY, nullptr, 0)))
+      if(!commandHandler.append_command(CommandPair(ZumoCommand::START_PENALTY, nullptr, 0)))
       {
         Serial.println("For mange commands i bufferet!");
       }

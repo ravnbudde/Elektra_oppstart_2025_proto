@@ -45,23 +45,28 @@ void LightReflectanceSensor::setCalibrate(bool enable) {
   }
 }
 
-void LightReflectanceSensor::calibrate_line_sensor(ZumoMotors motor) 
+std::tuple<int, int, bool> LightReflectanceSensor::calibrate_line_sensor() 
 {
   // Kalibrering av linje sensor
-  setCalibrate(true);
-  for(uint16_t i = 0; i < 120; i++) {
-      if (i > 30 && i <= 90){
-          motor.setSpeeds(-200, 200);
-      }
-      else{
-          motor.setSpeeds(200, -200);
-      }
-      read_raw(rawValues);
-      delay(20);
+  unsigned long now = millis();
+
+  if (!calibrating) {
+    calibration_start_time = now;
+    setCalibrate(true);
   }
-  motor.setSpeeds(0, 0);
-  // Deaktiver kalibrering etter 5 sekunder
-  setCalibrate(false);
+  if (now - calibration_start_time >= 5000) {
+    setCalibrate(false);
+    return std::make_tuple(0, 0, true);  // Ferdig
+  }
+
+  read_raw(rawValues);  
+
+  unsigned long elapsed = now - calibration_start_time;
+  if (elapsed > 1250 && elapsed <= 3750) {
+    return std::make_tuple(-300, 300, false); // Snu én vei
+  } else {
+    return std::make_tuple(300, -300, false); // Snu motsatt vei
+  }
 }
 
 void LightReflectanceSensor::read_line() {

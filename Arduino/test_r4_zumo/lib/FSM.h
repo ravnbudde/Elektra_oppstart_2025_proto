@@ -1,5 +1,8 @@
 #pragma once
 #include <vector>
+#include <tuple>
+#include <Arduino.h>
+#include <Arduino_FreeRTOS.h>
 
 #include "global_objects.h"
 
@@ -93,23 +96,33 @@ struct CommandPair {
  * 
  * @todo Trenger bedre navn
  */
-class FSM
+class ZumoCommandHandler
 {
 private:
     ZumoMode mode = ZumoMode::MANUEL;
-    ZumoStates state = ZumoStates::NORMAL;    
+    ZumoStates state = ZumoStates::NORMAL; 
+    
+    SemaphoreHandle_t speed_mutex;
+    SemaphoreHandle_t command_mutex;
 
     int manuel_motor_speeds[2] = {0,0};
+    int wanted_motor_speeds[2] = {0,0};
     
     std::vector<CommandPair> commands;
-
     CommandPair recieve_command();
-    void handle_command(CommandPair&& command);
-    void execute_state();
-public:
-    FSM();
-    ~FSM();
 
+    void set_wanted_motor_speeds(int l_speed, int r_speed);
+
+    public:
+    ZumoCommandHandler();
+    ~ZumoCommandHandler();
+
+    std::pair<int, int> get_wanted_motor_speed();
+    
+    void handle_last_command();
+    void calculate_speed();
+    
+    
     /**
      * @brief Funksjon for å gi kommandoer til FSMen
      * 
@@ -119,16 +132,6 @@ public:
      */
     bool append_command(CommandPair&& command);
 
-    /**
-     * @brief Funksjon som leser kommandoer i køen og handler basert på states
-     * 
-     * Funksjonen leser første kommandoen i køen om det finnes noen, oppdaterer states, og handler basert på hvilken state den er i.
-     * 
-     * @note Det er ikke egentlig en loop enda. den må bare kalles på i en loop. Hvor ofte den kalles er litt opp til brukeren, men det vil leses en kommando per kall, og setting av fart til motorene på bilen skjer også her. Anbefales å kalle på i ?10? ms intervall for å sikre at alle kommandoer blir behandlet.  
-     * 
-     * @todo Bytt navn eller fiks loop. Burde heller ikke styre motorene herfra!!!
-     */
-    void loop();
 };
 
 

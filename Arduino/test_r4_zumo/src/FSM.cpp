@@ -1,54 +1,86 @@
 #include "..\lib\FSM.h"
 
 
-FSM::FSM()
+ZumoCommandHandler::ZumoCommandHandler()
 {
     commands.reserve(MAX_COMMANDS);
+    this-> speed_mutex = xSemaphoreCreateBinary();
+    this-> command_mutex = xSemaphoreCreateBinary();
+
+    xSemaphoreGive(speed_mutex);
+    xSemaphoreGive(command_mutex);
 }
 
-FSM::~FSM()
+ZumoCommandHandler::~ZumoCommandHandler()
 {
 }
 
 
-CommandPair FSM::recieve_command() 
+void ZumoCommandHandler::set_wanted_motor_speeds(int l_speed, int r_speed) 
 {
+    xSemaphoreTake(this->speed_mutex, portMAX_DELAY);
+    this->wanted_motor_speeds[0] = l_speed;
+    this->wanted_motor_speeds[1] = r_speed;
+    xSemaphoreGive(this->speed_mutex);
+}
+
+
+std::pair<int, int> ZumoCommandHandler::get_wanted_motor_speed()
+{
+    xSemaphoreTake(this->speed_mutex, portMAX_DELAY);
+    int l_speed = this->wanted_motor_speeds[0];
+    int r_speed = this->wanted_motor_speeds[1];
+    xSemaphoreGive(this->speed_mutex);
+
+    return std::pair<int, int>(l_speed, r_speed);
+}
+
+
+CommandPair ZumoCommandHandler::recieve_command() 
+{
+    xSemaphoreTake(this->command_mutex, portMAX_DELAY);
     if(!commands.empty())
     {
         CommandPair command = std::move(commands.at(0));
         commands.erase(commands.begin());
+        xSemaphoreGive(this->command_mutex);
         return command;       
     } else
     {
+        xSemaphoreGive(this->command_mutex);
         return CommandPair(ZumoCommand::NONE, nullptr, 0);
     }
 }
 
-bool FSM::append_command(CommandPair&& command) 
+bool ZumoCommandHandler::append_command(CommandPair&& command) 
 {
+    xSemaphoreTake(this->command_mutex, portMAX_DELAY);
     if(commands.size() < MAX_COMMANDS) 
     {
         commands.push_back(std::move(command));
+        xSemaphoreGive(this->command_mutex);
         return true;
     } else {
+        xSemaphoreGive(this->command_mutex);
         return false;
     }
 }
 
 
-void FSM::handle_command(CommandPair&& command)
+void ZumoCommandHandler::handle_last_command()
 {
-
+    CommandPair command = this->recieve_command();
+    
     switch (command.cmd)
     {
-    /* __________ Status oppdateringer __________ */
+        /* __________ Status oppdateringer __________ */
     case START_PENALTY:
         if (state != ZumoStates::CALIBRATING)
         {
             state = ZumoStates::PENALTY;
         }
         break;
-
+        
     case START_CALIBRATE:
         state = ZumoStates::CALIBRATING;
         break;
@@ -91,33 +123,44 @@ void FSM::handle_command(CommandPair&& command)
     default:
         break;
     }
+    calculate_speed();
 }
 
 
-void FSM::execute_state() {
+void ZumoCommandHandler::calculate_speed() {
+    int l_speed;
+    int r_speed;
+    bool calibrate_fin = false;
+    static int calibrate_iter = 0;    
 
     switch (state)
     {
     case ZumoStates::NORMAL:
-        //TODO: en acceptance test på speed er fort ganske viktig å få inn her
+
         if(mode == ZumoMode::AUTO)
         {
-            motors.setLeftSpeed(pid.get_lspeed());
-            motors.setRightSpeed(pid.get_rspeed());
+            l_speed = pid.get_lspeed();
+            r_speed = pid.get_rspeed();
         } else 
         {
-            motors.setLeftSpeed(manuel_motor_speeds[0]);
-            motors.setRightSpeed(manuel_motor_speeds[1]);
+            l_speed = manuel_motor_speeds[0];
+            r_speed = manuel_motor_speeds[1];
         }
         break;
 
     case ZumoStates::CALIBRATING:
-        lineSensor.calibrate_line_sensor(motors);
-        state = ZumoStates::NORMAL;
+        Serial.println("Kalibrerer....");
+        std::tie(l_speed, r_speed, calibrate_fin) = lineSensor.calibrate_line_sensor();
+        Serial.println("Fikk kalibrings delresultat");
+        if (calibrate_fin) {
+            Serial.println("Kalibrert ferdig!");
+            state = ZumoStates::NORMAL;
+        }
         break;
     
     case ZumoStates::PENALTY:
-        motors.setSpeeds(MAX_SPEED, -MAX_SPEED);
+        l_speed = MAX_SPEED;
+        r_speed = -MAX_SPEED;
         delay(DELAY_PERIOD);
         state = ZumoStates::NORMAL;
         break;
@@ -126,17 +169,21 @@ void FSM::execute_state() {
         break;
     }
 
+
+    // Clamp speed mellomm +/- max_speed
+    if abs(l_speed > MAX_SPEED) 
+    {
+        int sign = (l_speed > 0) - (l_speed < 0);
+        l_speed = sign * MAX_SPEED;
+    }
+    if abs(r_speed > MAX_SPEED) 
+    {
+        int sign = (r_speed > 0) - (r_speed < 0);
+        r_speed = sign * MAX_SPEED;
+    }
+
+    set_wanted_motor_speeds(l_speed, r_speed);
 }
-
-
-void FSM::loop()
-{
-    handle_command(std::move(recieve_command()));
-    // Samme som kommentaren i .h fila: execute_state burde ikke kalles på her
-    // TODO: fjern loop, kall direkte på handle_command og evt execute_state i main
-    execute_state();
-}
-
 
 
 

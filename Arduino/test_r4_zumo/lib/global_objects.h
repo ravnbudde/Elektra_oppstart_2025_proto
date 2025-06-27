@@ -6,7 +6,6 @@
 
 extern LightReflectanceSensor lineSensor;
 extern PID pid;
-extern ZumoMotors motors;
 
 
 

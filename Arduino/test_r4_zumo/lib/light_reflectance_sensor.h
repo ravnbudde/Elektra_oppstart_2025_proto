@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ZumoShield.h>
+#include <tuple>
 
 
 /**
@@ -54,18 +55,19 @@ public:
      * 
      * @note Bilen må stå slik at sensorene er over linja mens denne kjører for riktig kalibrering.
      */
-    void calibrate_line_sensor(ZumoMotors motor);
+    std::tuple<int, int, bool> calibrate_line_sensor();
 
     int line_value = 0;
 
 private:
-    const uint8_t* sensorPins; // Pinner til sensorene
-    uint8_t numSensors;        // Antall sensorer
-    uint8_t emitterPin;        // IR emitter pin
+    const uint8_t* sensorPins;  // Pinner til sensorene
+    uint8_t numSensors;         // Antall sensorer
+    uint8_t emitterPin;         // IR emitter pin
 
-    bool calibrating;          // Om vi er i kalibreringsmodus
+    unsigned long calibration_start_time = 0;
+    bool calibrating = false;   // Om vi er i kalibreringsmodus
 
-    unsigned int rawValues[6]; // Array for å lagre de kalibrerte sensorverdiene
+    unsigned int rawValues[6];  // Array for å lagre de kalibrerte sensorverdiene
     unsigned int* sensorValues; // Råverdier fra sensorene
     unsigned int* minValues;    // Minste verdier for kalibrering
     unsigned int* maxValues;    // Største verdier for kalibrering
