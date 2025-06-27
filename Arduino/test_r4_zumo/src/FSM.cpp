@@ -53,8 +53,12 @@ void FSM::handle_command(CommandPair&& command)
         state = ZumoStates::CALIBRATING;
         break;
 
-    case TOGGLE_MODE:
-        mode = (mode == ZumoMode::AUTO) ? ZumoMode::MANUEL : ZumoMode::AUTO;
+    case PID_MODE:
+        mode = ZumoMode::AUTO;
+        break;
+    
+    case MANUEL_MODE:
+        mode = ZumoMode::MANUEL;
         break;
 
 
@@ -95,6 +99,7 @@ void FSM::execute_state() {
     switch (state)
     {
     case ZumoStates::NORMAL:
+        //TODO: en acceptance test på speed er fort ganske viktig å få inn her
         if(mode == ZumoMode::AUTO)
         {
             motors.setLeftSpeed(pid.get_lspeed());
@@ -127,6 +132,8 @@ void FSM::execute_state() {
 void FSM::loop()
 {
     handle_command(std::move(recieve_command()));
+    // Samme som kommentaren i .h fila: execute_state burde ikke kalles på her
+    // TODO: fjern loop, kall direkte på handle_command og evt execute_state i main
     execute_state();
 }
 
@@ -156,6 +163,7 @@ bool isValidFloatToken(const String& token) {
 
 
 std::pair<float*, size_t> parse_MQTT_msg(String message) {
+    // TODO: max_values kan flyttes oppover i fila for enklere endring til senere. kall den max_floats_mqtt_msg ellerno
     int max_values = 10;
     float* values = new float[max_values];
     size_t count = 0;

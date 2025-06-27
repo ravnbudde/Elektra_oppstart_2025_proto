@@ -10,10 +10,10 @@ void MQTTManager::init(WiFiClient& wifiClient, const char* server, int port,
     client.setClient(wifiClient);
     client.setServer(server, port);
     client.setCallback(staticCallback);
-
+    
     mqtt_user = user;
     mqtt_pass = pass;
-
+    
     send.setClient(&client);
     receive.setClient(&client);
 

@@ -142,7 +142,7 @@ void run_controller(void * pvParameters) {
     
     for (;;)
     {
-        Serial.println(" PID loop");
+        // Serial.println(" PID loop");
         
 
         vTaskDelayUntil( &last_wake_time, freq);

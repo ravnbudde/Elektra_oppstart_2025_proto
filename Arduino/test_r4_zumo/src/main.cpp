@@ -77,7 +77,9 @@ void setup()
 
   Serial.println("Ferdig med setup");
  
+
   // Sett opp tasks
+  // run controller kjører PID'en. Setter ikke ingangverdien selv
   pid_returned = xTaskCreate(
     run_controller,
     "PID_TASK",
@@ -87,6 +89,9 @@ void setup()
     &pid_handle
   );
 
+  // scoop er loop, kjører resten
+  // dvs meldinger, sensorer og fsm
+  // kan deles opp ytterligere senere, og kalles for noe annet enn scoop
   fsm_returned = xTaskCreate(
     scoop,
     "FSM_TASK",
@@ -109,7 +114,7 @@ void scoop(void * pvArg)
   {
     vTaskDelayUntil( &last_wake_time, pdMS_TO_TICKS(100));
 
-    Serial.println("Scoop loop");
+    // Serial.println("Scoop loop");
     
     // Koble til mqtt om du ikke allerede er det
     mqtt.loop();
@@ -122,24 +127,21 @@ void scoop(void * pvArg)
   
   
     /*_____ Les IMU + send sensorverdier _____ */
-    static unsigned long lastSampleTime = 0;
-    if ((millis() - lastSampleTime) > 100)
-    {
-      // Les
-      imu.read();
-  
-      // Send
-      mqtt.send.gyro(imu.g);
-      mqtt.send.accel(imu.a);
-      mqtt.send.mag(imu.m);
-      // // TODO: NB!!! Trenger en kanal for å sende linje også her!
-      mqtt.send.line(lineSensor.line_value); //ikkje testa, men bør funke
-  
-      lastSampleTime = millis();
-    }
+    // Les
+    imu.read();
+
+    // Send
+    mqtt.send.gyro(imu.g);
+    mqtt.send.accel(imu.a);
+    mqtt.send.mag(imu.m);
+    mqtt.send.line(lineSensor.line_value); //linje verdi
+
+      
   
   
     /*_____ Behandle MQTT meldinger _____*/
+    // flytt inn i en egen funksjon en gang for ryddighet. 
+    // bedre?: kjør kontinuerlig i en task med lavere prioritet
     if (mqtt.receive.last_cmd.length() > 0) {
       Serial.print("Mottok kommando: ");
       Serial.println(mqtt.receive.last_cmd);
@@ -149,12 +151,15 @@ void scoop(void * pvArg)
       if(mqtt.receive.last_cmd == "penalty")
       {
         cmd = ZumoCommand::START_PENALTY;
-      } else if (mqtt.receive.last_cmd == "calibrate")
+      } else if (mqtt.receive.last_cmd == "Calibrate")
       {
         cmd = ZumoCommand::START_CALIBRATE;
-      } else if (mqtt.receive.last_cmd == "mode")
+      } else if (mqtt.receive.last_cmd == "PID-mode")
       {
-        cmd = ZumoCommand::TOGGLE_MODE;
+        cmd = ZumoCommand::PID_MODE;
+      } else if (mqtt.receive.last_cmd == "Manual")
+      {
+        cmd = ZumoCommand::MANUEL_MODE;
       }
       
   
@@ -208,9 +213,6 @@ void scoop(void * pvArg)
     }
 
   }
-
-
-
 }
 
 

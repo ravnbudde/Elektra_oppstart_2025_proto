@@ -31,7 +31,8 @@ enum ZumoStates {
 enum ZumoCommand {
     START_PENALTY,
     START_CALIBRATE,
-    TOGGLE_MODE,
+    PID_MODE,
+    MANUEL_MODE,
     SET_MAN_SPEED,
     SET_REG_PARAM,
     NONE
@@ -119,13 +120,13 @@ public:
     bool append_command(CommandPair&& command);
 
     /**
-     * @brief Funksjon som leser kommandoer i køen og handler basert på statesA0
+     * @brief Funksjon som leser kommandoer i køen og handler basert på states
      * 
      * Funksjonen leser første kommandoen i køen om det finnes noen, oppdaterer states, og handler basert på hvilken state den er i.
      * 
      * @note Det er ikke egentlig en loop enda. den må bare kalles på i en loop. Hvor ofte den kalles er litt opp til brukeren, men det vil leses en kommando per kall, og setting av fart til motorene på bilen skjer også her. Anbefales å kalle på i ?10? ms intervall for å sikre at alle kommandoer blir behandlet.  
      * 
-     * @todo Bytt navn eller fiks loop
+     * @todo Bytt navn eller fiks loop. Burde heller ikke styre motorene herfra!!!
      */
     void loop();
 };
