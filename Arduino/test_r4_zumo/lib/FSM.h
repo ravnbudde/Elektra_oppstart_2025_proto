@@ -112,15 +112,16 @@ private:
     CommandPair recieve_command();
 
     void set_wanted_motor_speeds(int l_speed, int r_speed);
+    
+    void calculate_speed();
 
-    public:
+public:
     ZumoCommandHandler();
     ~ZumoCommandHandler();
 
     std::pair<int, int> get_wanted_motor_speed();
     
     void handle_last_command();
-    void calculate_speed();
     
     
     /**
