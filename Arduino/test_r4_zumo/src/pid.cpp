@@ -120,8 +120,14 @@ void PID::run_pid() {
     this->update_integral();
     this->update_derivat();
 
+    this->speed_diff = 0;
+    float t_kp = get_kp();
+    float t_ki = get_ki();
+    float t_kd = get_kd();
 
-    this->speed_diff = int(get_kp() * this->e) + int(get_ki() * this->integral) + int(get_kd() * this->derivat);
+    if (t_kp != 0.0) this->speed_diff += int(get_kp() * this->e);
+    if (t_ki != 0.0) this->speed_diff += int(get_ki() * this->integral);
+    if (t_kd != 0.0) this->speed_diff += int(get_kd() * this->derivat);
 
     float temp_left = DEFAULT_SPEED - this->speed_diff;
     float temp_right = DEFAULT_SPEED + this->speed_diff;

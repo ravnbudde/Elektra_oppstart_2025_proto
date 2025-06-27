@@ -149,11 +149,8 @@ void ZumoCommandHandler::calculate_speed() {
         break;
 
     case ZumoStates::CALIBRATING:
-        Serial.println("Kalibrerer....");
         std::tie(l_speed, r_speed, calibrate_fin) = lineSensor.calibrate_line_sensor();
-        Serial.println("Fikk kalibrings delresultat");
         if (calibrate_fin) {
-            Serial.println("Kalibrert ferdig!");
             state = ZumoStates::NORMAL;
         }
         break;

@@ -27,12 +27,18 @@ ZumoMotors motors;
 
 // Handles til tråder.
 #define PID_STACK_SIZE 1024/4
-#define FSM_STACK_SIZE 2048/4
+#define FSM_STACK_SIZE 1024/4
+#define MQTT_STACK_SIZE 1024/4
 
 TaskHandle_t pid_handle = NULL;
 BaseType_t pid_returned;
 TaskHandle_t fsm_handle = NULL;
 BaseType_t fsm_returned;
+TaskHandle_t mqtt_handle = NULL;
+BaseType_t mqtt_returned;
+
+void mqtt_task(void * pvArg);
+void fsm_n_sensor_task(void * pvArg);
 
 
 
@@ -61,8 +67,8 @@ void setup_imu_sensors() {
   imu.enableDefault();
 }
 
-TickType_t last_wake_time;
-void scoop(void * pvArg);
+TickType_t fsm_last_wake_time;
+TickType_t mqtt_last_wake_time;
 
 void setup()
 {
@@ -80,6 +86,15 @@ void setup()
  
 
   // Sett opp tasks
+  mqtt_returned = xTaskCreate(
+    mqtt_task,
+    "MQTT_TASK",
+    MQTT_STACK_SIZE,
+    NULL,
+    tskIDLE_PRIORITY+1,
+    &mqtt_handle
+  );
+
   // run controller kjører PID'en. Setter ikke ingangverdien selv
   pid_returned = xTaskCreate(
     run_controller,
@@ -90,67 +105,34 @@ void setup()
     &pid_handle
   );
 
-  // scoop er loop, kjører resten
-  // dvs meldinger, sensorer og fsm
-  // kan deles opp ytterligere senere, og kalles for noe annet enn scoop
+  // Kjører fsm og sensor
   fsm_returned = xTaskCreate(
-    scoop,
+    fsm_n_sensor_task,
     "FSM_TASK",
     FSM_STACK_SIZE,
     NULL,
-    tskIDLE_PRIORITY,
+    tskIDLE_PRIORITY + 1,
     &fsm_handle
   );
 
-  last_wake_time = xTaskGetTickCount();
+  fsm_last_wake_time = xTaskGetTickCount();
+  mqtt_last_wake_time = xTaskGetTickCount();
   vTaskStartScheduler();
 
 }
 
 void loop() {}
 
-void scoop(void * pvArg)
+void mqtt_task(void * pvArg)
 {
   for ( ;; )
   {
-    vTaskDelayUntil( &last_wake_time, pdMS_TO_TICKS(100));
-
-    // Serial.println("Scoop loop");
-    
+    // Serial.println("MQTT loop");
+    vTaskDelayUntil( &mqtt_last_wake_time, pdMS_TO_TICKS(50));
     // Koble til mqtt om du ikke allerede er det
     mqtt.loop();
-    
-    lineSensor.read_line();
-    // Kjør PID
-    pid.set_y(lineSensor.line_value);
-    
-    // Kjør FSM
-    // TODO: flytt til egen tråd, skal være helt trygt å gjøre nå, må bare gjøres
-    commandHandler.handle_last_command();
-    
-    //Sett fart på motorene:
-    std::pair<int, int> speeds = commandHandler.get_wanted_motor_speed();
-    motors.setLeftSpeed(speeds.first);
-    motors.setRightSpeed(speeds.second);
 
-  
-  
-    /*_____ Les IMU + send sensorverdier _____ */
-    // Les
-    imu.read();
-
-    // Send
-    mqtt.send.gyro(imu.g);
-    mqtt.send.accel(imu.a);
-    mqtt.send.mag(imu.m);
-    mqtt.send.line(lineSensor.line_value); //linje verdi
-
-      
-  
-  
     /*_____ Behandle MQTT meldinger _____*/
-    // flytt inn i en egen funksjon en gang for ryddighet. 
-    // bedre?: kjør kontinuerlig i en task med lavere prioritet
     if (mqtt.receive.last_cmd.length() > 0) {
       Serial.print("Mottok kommando: ");
       Serial.println(mqtt.receive.last_cmd);
@@ -171,7 +153,6 @@ void scoop(void * pvArg)
         cmd = ZumoCommand::MANUEL_MODE;
       }
       
-  
       // Prøv å push commanden i FSM, send error melding om buffer er fylt opp
       if(!commandHandler.append_command(CommandPair(cmd, nullptr, 0)))
       {
@@ -221,6 +202,37 @@ void scoop(void * pvArg)
       mqtt.receive.last_penalty = "";  // nullstill
     }
 
+  }
+}
+
+void fsm_n_sensor_task(void * pvArg)
+{
+  for ( ;; )
+  {
+    // Serial.println("FSM loop");
+    vTaskDelayUntil( &fsm_last_wake_time, pdMS_TO_TICKS(50));
+    
+    lineSensor.read_line();
+    // Kjør PID
+    pid.set_y(lineSensor.line_value);
+    
+    // Kjør FSM
+    commandHandler.handle_last_command();
+    
+    //Sett fart på motorene:
+    std::pair<int, int> speeds = commandHandler.get_wanted_motor_speed();
+    motors.setLeftSpeed(speeds.first);
+    motors.setRightSpeed(speeds.second);
+
+    /*_____ Les IMU + send sensorverdier _____ */
+    // Les
+    imu.read();
+
+    // Send
+    mqtt.send.gyro(imu.g);
+    mqtt.send.accel(imu.a);
+    mqtt.send.mag(imu.m);
+    mqtt.send.line(lineSensor.line_value); //linje verdi
   }
 }
 
