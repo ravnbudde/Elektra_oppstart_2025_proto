@@ -121,6 +121,16 @@ class LeaderboardApp:
         self.oppdater_leaderboard()
         self.root.after(OPPDATERING_INTERVAL_SEC * 1000, self.schedule_oppdatering)
 
+
+def start_leaderboard(root, lock):
+    leaderboard_win = tk.Toplevel(root)
+    leaderboard_win.title("Leaderboard")
+    leaderboard_win.geometry("400x300")
+    app = LeaderboardApp(leaderboard_win, POENG_CSV, lock)
+    return app
+
+
+
 def leaderboard_console_updater(lock):
     """
     Leser leaderboard fra csv-fil og printer den til terminalen hvert OPPDATERING_INTERVAL_SEC sekund.

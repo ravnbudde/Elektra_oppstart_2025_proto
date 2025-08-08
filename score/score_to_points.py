@@ -18,7 +18,7 @@ OPPG3_MAX = 40000
 
 OPPG1_1_TID = 30
 OPPG1_2_TID = 60
-OPPG3_TID = 120
+OPPG3_TID = 200
 
 def omregn_verdier(df):
     df_omregnet = df.copy()

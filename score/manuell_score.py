@@ -200,11 +200,12 @@ class GruppeApp:
         except Exception as e:
             self.status_label.config(text=f"Feil ved lagring: {e}", fg="red")
 
-def start_gui(csvLock):
-    root = tk.Tk()
-    root.title("Gruppe Input")
-    root.geometry("600x400")  # Bredde x Høyde i piksler
+def start_gui(csvLock, root):
+    # root = tk.Tk()
+    # root.title("Gruppe Input")
+    # root.geometry("600x400")  # Bredde x Høyde i piksler
     # root.resizable(False, False)  # Låser vindusstørrelsen
+
     app = GruppeApp(root, csvLock)
     root.mainloop()
 
