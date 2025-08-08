@@ -34,6 +34,7 @@ class PID {
     float integral = 0;
     float derivat = 0;
     
+    int normal_speed = DEFAULT_SPEED;
     int speed_diff = 0;
 
     float y = 0;
@@ -101,7 +102,7 @@ public:
      * @param ref Ny referanse
      */
     void set_ref(float ref);
- 
+     
 
     
     /**

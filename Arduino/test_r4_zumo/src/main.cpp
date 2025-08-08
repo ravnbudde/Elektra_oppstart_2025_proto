@@ -168,6 +168,7 @@ void mqtt_task(void * pvArg)
   
       // Gjør om pid sin string "float, float, float" til faktiske floats
       std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_pid);
+
   
       if(!commandHandler.append_command(CommandPair(ZumoCommand::SET_REG_PARAM, parsed_msg.first, parsed_msg.second)))
       {
@@ -213,6 +214,8 @@ void fsm_n_sensor_task(void * pvArg)
     vTaskDelayUntil( &fsm_last_wake_time, pdMS_TO_TICKS(50));
     
     lineSensor.read_line();
+    Serial.println(lineSensor.line_value);
+
     // Kjør PID
     pid.set_y(lineSensor.line_value);
     
@@ -221,6 +224,7 @@ void fsm_n_sensor_task(void * pvArg)
     
     //Sett fart på motorene:
     std::pair<int, int> speeds = commandHandler.get_wanted_motor_speed();
+
     motors.setLeftSpeed(speeds.first);
     motors.setRightSpeed(speeds.second);
 

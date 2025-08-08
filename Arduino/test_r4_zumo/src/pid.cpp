@@ -89,7 +89,7 @@ float PID::get_kd() const{
 
 float PID::get_ki() const{
     xSemaphoreTake(this->param_mutex, portMAX_DELAY);
-    float temp = this->Kd;
+    float temp = this->Ki;
     xSemaphoreGive(this->param_mutex);
     return temp;
 }
@@ -125,17 +125,28 @@ void PID::run_pid() {
     float t_ki = get_ki();
     float t_kd = get_kd();
 
-    if (t_kp != 0.0) this->speed_diff += int(get_kp() * this->e);
-    if (t_ki != 0.0) this->speed_diff += int(get_ki() * this->integral);
-    if (t_kd != 0.0) this->speed_diff += int(get_kd() * this->derivat);
+    // Bruker bare rspeed som autospeed -> kan lage egen blokk, men gadd ikke lage ekstra matlab blokk for nå
+    this->normal_speed = this->get_rspeed();
 
-    float temp_left = DEFAULT_SPEED - this->speed_diff;
-    float temp_right = DEFAULT_SPEED + this->speed_diff;
+    if (t_kp >= 0.001) this->speed_diff -= int(t_kp * this->e);
+    if (t_ki >= 0.001) this->speed_diff -= int(t_ki * this->integral);
+    if (t_kd >= 0.001) this->speed_diff -= int(t_kd * this->derivat);
 
-    if (temp_left < -DEFAULT_SPEED) set_lspeed(-DEFAULT_SPEED);
-    if (temp_left > DEFAULT_SPEED) set_lspeed(DEFAULT_SPEED);
-    if (temp_right < -DEFAULT_SPEED) set_rspeed(-DEFAULT_SPEED);
-    if (temp_right > DEFAULT_SPEED) set_rspeed(DEFAULT_SPEED);
+    float temp_left = normal_speed - this->speed_diff;
+    float temp_right = normal_speed + this->speed_diff;
+
+    Serial.print("PID: lspeed: ");
+    Serial.print(temp_left);
+    Serial.print("\tPID: rspeed: ");
+    Serial.println(temp_right);
+
+
+    if (temp_left < -normal_speed) set_lspeed(-normal_speed);
+    else if (temp_left > normal_speed) set_lspeed(normal_speed);
+    else set_lspeed(temp_left);
+    if (temp_right < -normal_speed) set_rspeed(-normal_speed);
+    else if (temp_right > normal_speed) set_rspeed(normal_speed);
+    else set_rspeed(temp_right);
 }
 
 

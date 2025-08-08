@@ -26,6 +26,7 @@ void MQTTManager::reconnect() {
             receive.subscribeAll();  // faste topics
             attachCallbacks();       // sett alle faste callback
         } else {
+            Serial.println("MQTT con failed. Retrying in 1 second...");
             delay(1000);
         }
     }

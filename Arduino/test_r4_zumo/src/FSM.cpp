@@ -110,7 +110,7 @@ void ZumoCommandHandler::handle_last_command()
     case SET_REG_PARAM:
         if (command.length == 3)
         {
-            // Serial.println("Setter reg param til " + String(command.parameters[0]) + String(command.parameters[1]) + String(command.parameters[2]) );
+            Serial.println("Setter reg param til " + String(command.parameters[0]) + " " + String(command.parameters[1]) + " " + String(command.parameters[2]) );
             pid.set_kp(command.parameters[0]);
             pid.set_ki(command.parameters[1]);
             pid.set_kd(command.parameters[2]);
