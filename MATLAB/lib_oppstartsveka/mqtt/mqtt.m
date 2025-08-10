@@ -1,4 +1,4 @@
-function mqtt(car_id, broker, port, bn, pw, topics)
+function mqtt(car_id, group_id, broker, port, bn, pw, topics)
 %MQTT Wrapper for MQTT-oppstart med fleksibel argumenthandsaming.
 %   MQTT(...) kallar mqtt_setup() med ulike gradar av spesifikasjon,
 %   og legg automatisk til 'mqtt/'-mappa i søkjestien dersom ho ikkje er der frå før.
@@ -44,6 +44,7 @@ function mqtt(car_id, broker, port, bn, pw, topics)
 
     % Standardverdiar
     default_car_id = 14;
+    default_group_id = 69;
     default_broker = "192.168.1.3";
     default_port   = "1883";
     default_user   = "BIAISbroker";
@@ -52,16 +53,18 @@ function mqtt(car_id, broker, port, bn, pw, topics)
     % Kall med gradvis fleire argument
     switch nargin
         case 0
-            mqtt_setup(default_car_id, default_broker, default_port, default_user, default_pass);
+            mqtt_setup(default_car_id, default_group_id, default_broker, default_port, default_user, default_pass);
         case 1
-            mqtt_setup(car_id, default_broker, default_port, default_user, default_pass);
+            mqtt_setup(car_id, default_group_id, default_broker, default_port, default_user, default_pass);
         case 2
-            mqtt_setup(car_id, broker, default_port, default_user, default_pass);
+            mqtt_setup(car_id, group_id, default_broker, default_port, default_user, default_pass);
         case 3
-            mqtt_setup(car_id, broker, port, default_user, default_pass);
+            mqtt_setup(car_id, group_id, broker, default_port, default_user, default_pass);
         case 5
-            mqtt_setup(car_id, broker, port, bn, pw); % utan topics
+            mqtt_setup(car_id, group_id, broker, port, default_user, default_pass);
+        case 6
+            mqtt_setup(car_id, group_id, broker, port, bn, pw); % utan topics
         otherwise
-            mqtt_setup(car_id, broker, port, bn, pw, topics);
+            mqtt_setup(car_id, group_id, broker, port, bn, pw, topics);
     end
 end

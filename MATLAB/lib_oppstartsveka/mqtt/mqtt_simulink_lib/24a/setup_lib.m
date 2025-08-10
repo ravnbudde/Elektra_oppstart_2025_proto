@@ -10,6 +10,7 @@ classdef setup_lib
             maskWS = maskInitContext.MaskWorkspace;
         
             car_id = (maskWS.get('carID'));
+            group_id = (maskWS.get('groupID'));
             broker = string(maskWS.get('brokerVal'));
             port   = string(maskWS.get('portVal'));
         
@@ -21,9 +22,9 @@ classdef setup_lib
 
             % Vel riktig kall basert på kva som er tilgjengeleg
             if hasUser
-                mqtt(car_id, broker, port, userRaw, passRaw);
+                mqtt(car_id, group_id, broker, port, userRaw, passRaw);
             else
-                mqtt(car_id, broker, port, "", "");
+                mqtt(car_id, group_id, broker, port, "", "");
 
             end
         end
