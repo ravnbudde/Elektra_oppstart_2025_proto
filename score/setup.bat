@@ -1,3 +1,4 @@
+@echo off
 python -m venv .venv
-.venv\Scripts\Activate
-pip install -r requirements.txt
+.venv\Scripts\python -m pip install -r requirements.txt
+pause
