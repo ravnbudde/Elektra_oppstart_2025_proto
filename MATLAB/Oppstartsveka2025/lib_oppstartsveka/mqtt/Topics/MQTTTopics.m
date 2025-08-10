@@ -22,6 +22,7 @@ classdef MQTTTopics
         mag      ('mag')
         line     ('line')
         encoder  ('encoder')
+        sensors  ('sensors')
     end
 
     properties

@@ -1,11 +1,12 @@
-function mqtt_setup(car_id, broker, port, bn, pw, topics)
+function mqtt_setup(car_id, group_id, broker, port, bn, pw, topics)
 %MQTT_SETUP Initialiserer og konfigurerer MQTT-kommunikasjon for ein Zumo-bil.
-%   MQTT_SETUP(CAR_ID, BROKER, PORT, USERNAME, PASSWORD, TOPICS) set opp ein
+%   MQTT_SETUP(CAR_ID. GROUP_ID, BROKER, PORT, USERNAME, PASSWORD, TOPICS) set opp ein
 %   MQTT-klient for ein gjeven bil-ID, med tilhøyrande broker-informasjon
 %   og abonnerer på relevante topicar.
 %   NB! støtter kun TCP
 %
 %   Obligatoriske parameter:
+%       GROUP_ID   - gruppe id
 %       CAR_ID     – heiltal brukt som bilens-ID og filter av topics
 %       BROKER     – adresse til MQTT-broker, t.d. 'localhost' eller 'broker.io'
 %
@@ -41,19 +42,21 @@ function mqtt_setup(car_id, broker, port, bn, pw, topics)
     default_pass   = "";
 
     % 1. Verdiar basert på input
-    if nargin < 3 || isempty(port)
+    if nargin < 4 || isempty(port)
         port = default_port;
     end
-    if nargin < 4 || isempty(bn)
+    if nargin < 5 || isempty(bn)
         bn = default_user;
     end
-    if nargin < 5 || isempty(pw)
+    if nargin < 6 || isempty(pw)
         pw = default_pass;
     end
 
     % 🔧 Fortset som før...
     fprintf("🚗 Setter opp system med car_id = %d\n", car_id);
     assignin("base", "car_id", uint8(car_id));
+
+    assignin("base", "group_id", uint8(group_id));
 
     basetopic = sprintf("zumo_car/%d", car_id);
     assignin("base", "basetopic", basetopic);
@@ -75,14 +78,14 @@ function mqtt_setup(car_id, broker, port, bn, pw, topics)
 
     % 5. Opprett MQTT-klient
     if bn == ""
-        client = mqtt_initClient(broker, str2double(port));
+        client = mqtt_initClient(broker, str2double(port), "KeepAliveDuration", 80000);
     else
-        client = mqtt_initClient(broker, str2double(port), "Username", bn, "Password", pw);
+        client = mqtt_initClient(broker, str2double(port), "Username", bn, "Password", pw, "KeepAliveDuration", 80000);
     end
     assignin("base", "mqttClient", client);
 
     % 6. Hent topicar
-    if nargin < 6 || isempty(topics)
+    if nargin < 7 || isempty(topics)
         allTopics = enumeration("MQTTTopics");
         topics_final = string(arrayfun(@char, allTopics, "UniformOutput", false));
         fprintf("📚 Brukar %d topicar frå enum.\n", numel(topics_final));

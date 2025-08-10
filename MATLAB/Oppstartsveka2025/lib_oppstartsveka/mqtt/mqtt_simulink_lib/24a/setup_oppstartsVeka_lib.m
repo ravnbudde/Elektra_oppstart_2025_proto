@@ -10,12 +10,13 @@ classdef setup_oppstartsVeka_lib
             maskWS = maskInitContext.MaskWorkspace;
         
             car_id = (maskWS.get('carID'));
+            group_id = (maskWS.get('groupID'));
             broker = '192.168.1.3';
             port   = '1883';
             user = 'BIAISbroker';
             pass = 'shinyteapot294';
 
-            mqtt(car_id, broker, port, user, pass);
+            mqtt(car_id, group_id, broker, port, user, pass);
         end
  
 

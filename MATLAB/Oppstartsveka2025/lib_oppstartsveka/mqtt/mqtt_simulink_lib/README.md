@@ -84,7 +84,7 @@ Blokkene har inga konfigurasjon eller inngangsparameter – dei opererer fullt u
 
 ### 2.1. `ReadLine`
 
-Gir ut den nyaste verdien som er motteken frå linjesensor-topicen. Blokka returnerer éin skalarverdi, der 0 er midtpunktet.
+Gir ut den nyaste verdien som er motteken frå linjesensor-topicen. Blokka returnerer éin skalarverdi, typisk representert som posisjon eller intensitet.
 
 ### 2.2. `read_encoder`
 
@@ -161,7 +161,7 @@ Blokka sender kommandoar som tekststrengar til topic `cmd`.
 * Du kan òg skrive inn eigen tekst manuelt
 * Sender berre melding når verdien i feltet endrar seg
 
-**Merk:** Meldinga må vere under 20 byte. Blokka sørger for dette internt ved å padde meldinga til `1x20` før sending.
+**Merk:** Meldinga må vere nøyaktig 20 byte. Blokka sørger for dette internt ved å padde meldinga til `1x20` før sending.
 
 ![SendCmd-blokk](pic/blocks/send_cmd.png)
 

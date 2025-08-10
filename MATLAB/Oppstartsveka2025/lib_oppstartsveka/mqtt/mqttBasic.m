@@ -1,4 +1,4 @@
-function mqttBasic(car_id)
+function mqttBasic(car_id, group_id)
 %MQTTBASIC Standard MQTT-oppsett for oppstartsveka med lokal broker.
 %   MQTTBASIC(CAR_ID) set opp MQTT-kommunikasjon med førehandsdefinert broker
 %   og autentisering tilpassa Raspberry Pi-baserte system brukt under oppstartsveka.
@@ -17,5 +17,5 @@ function mqttBasic(car_id)
     user = 'BIAISbroker';
     pass = 'shinyteapot294';
     
-    mqtt(car_id, broker, port, user, pass);
+    mqtt(car_id, group_id, broker, port, user, pass);
 end
