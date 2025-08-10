@@ -15,11 +15,10 @@ import tkinter as tk
 
 
 if __name__ == "__main__":
-    #Lag lock til csv (dette gjelder resulater.csv)
+    #Lag lock til csv'ene
     csvLock = threading.Lock()
     convertLock = threading.Lock()
 
-    
     # lag handle og start omregning
     les_omregn_thread = threading.Thread(target=kontinuerlig_les_og_omregn, args=(csvLock, convertLock,), daemon=True)
     les_omregn_thread.start()
@@ -27,13 +26,11 @@ if __name__ == "__main__":
     # MQTT bib lager tråder selv
     start_mqtt(csvLock)
 
-  
+    # Lag root til GUI'er. Hovedvindu er poeng-input, leaderboard er topwindow  
     root = tk.Tk()
     root.title("Gruppe Input")
-    root.geometry("600x400")  # Bredde x Høyde i piksler
-
+    root.geometry("600x400") 
     app = GruppeApp(root, csvLock)
-    # Lag leaderboard vindu i samme tråd
     leaderboard_app = start_leaderboard(root, convertLock)
     # Start hovedløkken (blokkering)
     root.mainloop()
