@@ -77,7 +77,7 @@ void ZumoCommandHandler::handle_last_command()
     case START_PENALTY:
         if (state != ZumoStates::CALIBRATING)
         {
-            state = ZumoStates::PENALTY;
+            // state = ZumoStates::PENALTY;
         }
         break;
         
@@ -156,9 +156,6 @@ void ZumoCommandHandler::calculate_speed() {
         break;
     
     case ZumoStates::PENALTY:
-        l_speed = MAX_SPEED;
-        r_speed = -MAX_SPEED;
-        delay(DELAY_PERIOD);
         state = ZumoStates::NORMAL;
         break;
 
