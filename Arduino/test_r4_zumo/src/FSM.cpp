@@ -87,7 +87,6 @@ void ZumoCommandHandler::handle_last_command()
 
     case PID_MODE:
         mode = ZumoMode::AUTO;
-        num_penalties = 0;
         break;
     
     case MANUEL_MODE:
