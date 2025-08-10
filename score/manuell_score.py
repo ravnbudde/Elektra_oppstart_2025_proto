@@ -91,7 +91,7 @@ class GruppeApp:
             frame = tk.Frame(self.second_frame)
             frame.pack(anchor="w", pady=2)
 
-            # Sett label med fast bredde (f.eks 8-12 tegn bredde), og høyrejuster teksten
+            # Sett label med fast bredde
             lbl = tk.Label(frame, text=f"{navn}:", width=10, anchor="e")  
             lbl.pack(side="left")
 
