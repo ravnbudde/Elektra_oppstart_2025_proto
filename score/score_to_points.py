@@ -12,12 +12,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ORIGINAL_CSV = os.path.join(SCRIPT_DIR, "resultater.csv")
 NY_CSV = os.path.join(SCRIPT_DIR, "resultater_omregnet.csv")
 
-OPPG1_1_MAX = 15000
-OPPG1_2_MAX = 15000
+OPPG1_1_MAX = 30000
+OPPG1_2_MAX = 30000
 OPPG3_MAX = 40000
 
-OPPG1_1_TID = 30
-OPPG1_2_TID = 60
+OPPG1_1_TID = 10000
+OPPG1_2_TID = 10000
 OPPG3_TID = 200
 
 def omregn_verdier(df):
