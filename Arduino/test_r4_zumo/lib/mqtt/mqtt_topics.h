@@ -3,6 +3,7 @@
 
 #define BASE_TOPIC     "zumo_car/" CAR_ID
 
+#define TOPIC_SENSORS  BASE_TOPIC "/sensors"
 #define TOPIC_GYRO     BASE_TOPIC "/gyro"
 #define TOPIC_ACCEL    BASE_TOPIC "/accel"
 #define TOPIC_MAG      BASE_TOPIC "/mag"

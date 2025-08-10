@@ -7,6 +7,8 @@ class MQTTSender {
 public:
     void setClient(PubSubClient* client);
 
+    void sensors(ZumoIMU imu, int16_t lineValue);
+
     void gyro(ZumoIMU::vector<int16_t> v);
     void accel(ZumoIMU::vector<int16_t> v);
     void mag(ZumoIMU::vector<int16_t> v);

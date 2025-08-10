@@ -84,6 +84,7 @@ void setup()
 
   Serial.println("Ferdig med setup");
  
+  // MQTT kjører på 10Hz, PID og lesing/sending av sensorer kjører på 18Hz 
 
   // Sett opp tasks
   mqtt_returned = xTaskCreate(
@@ -127,8 +128,7 @@ void mqtt_task(void * pvArg)
 {
   for ( ;; )
   {
-    Serial.print("M");
-    vTaskDelayUntil( &mqtt_last_wake_time, pdMS_TO_TICKS(200));
+    vTaskDelayUntil( &mqtt_last_wake_time, pdMS_TO_TICKS(100));
     // Koble til mqtt om du ikke allerede er det
     mqtt.loop();
 
@@ -210,8 +210,7 @@ void fsm_n_sensor_task(void * pvArg)
 {
   for (;;)
   {
-    // Serial.print("F");
-    vTaskDelayUntil( &fsm_last_wake_time, pdMS_TO_TICKS(100));
+    vTaskDelayUntil( &fsm_last_wake_time, pdMS_TO_TICKS(55));
     
     lineSensor.read_line();
     // Serial.println(lineSensor.line_value);
@@ -232,12 +231,10 @@ void fsm_n_sensor_task(void * pvArg)
     // Les
     imu.read();
 
-    // Send (sende 4 bruker ca 60ms på å kjøre :( )
-    mqtt.send.gyro(imu.g);
-    mqtt.send.accel(imu.a);
-    mqtt.send.mag(imu.m);
-    mqtt.send.line(lineSensor.line_value); //linje verdi    
+    // Send 
+    mqtt.send.sensors(imu, lineSensor.line_value);
   }
+  
 }
 
 

@@ -153,14 +153,11 @@ void PID::run_pid() {
 
 void run_controller(void * pvParameters) {
     TickType_t last_wake_time;
-    const TickType_t period_ms = 50;
+    const TickType_t period_ms = 55;
     last_wake_time = xTaskGetTickCount();
     
     for (;;)
-    {
-        Serial.print("P");
-        
-        
+    {        
         vTaskDelayUntil( &last_wake_time, pdMS_TO_TICKS(period_ms));
         pid.run_pid();
     }

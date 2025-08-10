@@ -13,6 +13,17 @@ void MQTTSender::publish(const char* topic, const String& payload) {
 
 // --- Sensorfunksjonar ---
 
+void MQTTSender::sensors(ZumoIMU imu, int16_t lineVal) {
+    String payload = String(imu.g.x) + "," + String(imu.g.y) + "," + String(imu.g.z)
+                        + ","
+                        + String(imu.a.x) + "," + String(imu.a.y) + "," + String(imu.a.z)
+                        + ","
+                        + String(imu.m.x) + "," + String(imu.m.y) + "," + String(imu.m.z)
+                        + ","
+                        + String(lineVal);
+    publish(TOPIC_SENSORS, payload);
+}
+
 void MQTTSender::gyro(ZumoIMU::vector<int16_t> v) {
     String payload = String(v.x) + "," + String(v.y) + "," + String(v.z);
     publish(TOPIC_GYRO, payload);
