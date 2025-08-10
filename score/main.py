@@ -7,8 +7,11 @@ import threading
 import tkinter as tk
 
 
-
-
+# NB!!!
+# Manuel GUI syncer tallene når du går inn på en gruppe, så om du går inn på en gruppe og en automatisk oppgave
+# Endres før du lagrer, vil den tilbakestilles
+# Derfor viktig at gruppen ikke gjør automatiske oppgaver (1 og 2) samtidig som man skriver inn score (oppg3, bonus)
+# Tviler på at det noengang blir et problem, men greit å vite
 
 
 if __name__ == "__main__":
@@ -22,7 +25,7 @@ if __name__ == "__main__":
     les_omregn_thread.start()
 
     # MQTT bib lager tråder selv
-    # start_mqtt(csvLock)
+    start_mqtt(csvLock)
 
   
     root = tk.Tk()
