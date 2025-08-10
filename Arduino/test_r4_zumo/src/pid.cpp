@@ -101,7 +101,8 @@ float PID::get_ref() const{
     return temp;
 }
 
-int PID::get_rspeed() const {
+int PID::get_rspeed(int man_r_speed) {
+    normal_speed = man_r_speed;
     xSemaphoreTake(this->speed_mutex, portMAX_DELAY);
     float temp = this->right_speed;
     xSemaphoreGive(this->speed_mutex);
@@ -126,7 +127,7 @@ void PID::run_pid() {
     float t_kd = get_kd();
 
     // Bruker bare rspeed som autospeed -> kan lage egen blokk, men gadd ikke lage ekstra matlab blokk for nå
-    this->normal_speed = this->get_rspeed();
+    // normal = get_normal_speed();
 
     if (t_kp >= 0.001) this->speed_diff -= int(t_kp * this->e);
     if (t_ki >= 0.001) this->speed_diff -= int(t_ki * this->integral);

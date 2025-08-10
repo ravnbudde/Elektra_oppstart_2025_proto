@@ -140,7 +140,7 @@ void ZumoCommandHandler::calculate_speed() {
         if(mode == ZumoMode::AUTO)
         {
             l_speed = pid.get_lspeed();
-            r_speed = pid.get_rspeed();
+            r_speed = pid.get_rspeed(manuel_motor_speeds[1]);
         } else 
         {
             l_speed = manuel_motor_speeds[0];

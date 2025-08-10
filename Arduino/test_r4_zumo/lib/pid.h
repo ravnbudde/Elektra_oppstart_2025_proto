@@ -131,10 +131,11 @@ public:
     float get_ref() const;
     /**
      * @brief Hjelpefunksjon for å lese høyre fart fra kontrolleren.
+     * Send default speed inn hit, gadd ikke lage egen funksjon for nå.
      * 
      * Trådsikker
      */
-    int get_rspeed() const;
+    int get_rspeed(int man_r_speed);
     /**
      * @brief Hjelpefunksjon for å lese venstre fart fra kontrolleren.
      * 
