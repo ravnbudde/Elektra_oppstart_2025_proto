@@ -135,10 +135,10 @@ void PID::run_pid() {
     float temp_left = normal_speed - this->speed_diff;
     float temp_right = normal_speed + this->speed_diff;
 
-    Serial.print("PID: lspeed: ");
-    Serial.print(temp_left);
-    Serial.print("\tPID: rspeed: ");
-    Serial.println(temp_right);
+    // Serial.print("PID: lspeed: ");
+    // Serial.print(temp_left);
+    // Serial.print("\tPID: rspeed: ");
+    // Serial.println(temp_right);
 
 
     if (temp_left < -normal_speed) set_lspeed(-normal_speed);
@@ -153,19 +153,17 @@ void PID::run_pid() {
 
 void run_controller(void * pvParameters) {
     TickType_t last_wake_time;
-    const TickType_t freq = pdMS_TO_TICKS(1000*TS);
+    const TickType_t period_ms = 50;
     last_wake_time = xTaskGetTickCount();
-    
     
     for (;;)
     {
-        // Serial.println(" PID loop");
+        Serial.print("P");
         
-
-        vTaskDelayUntil( &last_wake_time, freq);
+        
+        vTaskDelayUntil( &last_wake_time, pdMS_TO_TICKS(period_ms));
         pid.run_pid();
     }
-
 }
 
 

@@ -22,7 +22,8 @@ void MQTTManager::init(WiFiClient& wifiClient, const char* server, int port,
 
 void MQTTManager::reconnect() {
     while (!client.connected()) {
-        if (client.connect("ZumoClient", mqtt_user, mqtt_pass)) {
+        // Viktig å ha unik navn, fikk litt problemer med det. Bruker bare CAR_ID nå, så viktig at ingen CAR_ID er like
+        if (client.connect(CAR_ID, mqtt_user, mqtt_pass)) {
             receive.subscribeAll();  // faste topics
             attachCallbacks();       // sett alle faste callback
         } else {

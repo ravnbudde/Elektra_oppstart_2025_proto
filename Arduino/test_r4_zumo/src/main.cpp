@@ -95,7 +95,7 @@ void setup()
     &mqtt_handle
   );
 
-  // run controller kjører PID'en. Setter ikke ingangverdien selv
+  // // run controller kjører PID'en. Setter ikke ingangverdien selv
   pid_returned = xTaskCreate(
     run_controller,
     "PID_TASK",
@@ -127,8 +127,8 @@ void mqtt_task(void * pvArg)
 {
   for ( ;; )
   {
-    // Serial.println("MQTT loop");
-    vTaskDelayUntil( &mqtt_last_wake_time, pdMS_TO_TICKS(50));
+    Serial.print("M");
+    vTaskDelayUntil( &mqtt_last_wake_time, pdMS_TO_TICKS(200));
     // Koble til mqtt om du ikke allerede er det
     mqtt.loop();
 
@@ -208,13 +208,13 @@ void mqtt_task(void * pvArg)
 
 void fsm_n_sensor_task(void * pvArg)
 {
-  for ( ;; )
+  for (;;)
   {
-    // Serial.println("FSM loop");
-    vTaskDelayUntil( &fsm_last_wake_time, pdMS_TO_TICKS(50));
+    // Serial.print("F");
+    vTaskDelayUntil( &fsm_last_wake_time, pdMS_TO_TICKS(100));
     
     lineSensor.read_line();
-    Serial.println(lineSensor.line_value);
+    // Serial.println(lineSensor.line_value);
 
     // Kjør PID
     pid.set_y(lineSensor.line_value);
@@ -232,11 +232,11 @@ void fsm_n_sensor_task(void * pvArg)
     // Les
     imu.read();
 
-    // Send
+    // Send (sende 4 bruker ca 60ms på å kjøre :( )
     mqtt.send.gyro(imu.g);
     mqtt.send.accel(imu.a);
     mqtt.send.mag(imu.m);
-    mqtt.send.line(lineSensor.line_value); //linje verdi
+    mqtt.send.line(lineSensor.line_value); //linje verdi    
   }
 }
 
