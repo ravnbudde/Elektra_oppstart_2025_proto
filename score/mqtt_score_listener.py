@@ -31,8 +31,12 @@ def on_message(client, userdata, msg):
     else:
         siste_del = payload
 
+    
+
     try:
         verdi = float(siste_del)
+        if verdi == float('inf') or verdi == float('-inf'):
+            raise ValueError("Verdi er uendelig (inf)")
     except ValueError:
         print(f"Ugyldig float-verdi mottatt på {topic}: {payload}")
         return
