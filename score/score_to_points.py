@@ -97,17 +97,16 @@ def beregn_score(df):
     # Beregn poeng per oppgave
     oppg1_1_poeng = normalize(df["del1.1"], 100, higher_is_better=False) 
     oppg1_2_poeng = normalize(df["del1.2"], 100, higher_is_better=False)
-    oppg2_1_poeng = normalize(df["del2.1"], 100, higher_is_better=True)
+    oppg2_poeng = normalize(df["del2"], 100, higher_is_better=True)
     oppg3_poeng = normalize(df["del3"], 100, higher_is_better=False)
-    oppg2_2_poeng = df["del2.2"].fillna(0)
     bonus_poeng = df["bonus"].fillna(0)
 
-    sum_poeng = 0.5*oppg1_1_poeng + 0.5*oppg1_2_poeng + oppg2_1_poeng + oppg3_poeng + oppg2_2_poeng + bonus_poeng
+    sum_poeng = 0.5*oppg1_1_poeng + 0.5*oppg1_2_poeng + oppg2_poeng + oppg3_poeng + bonus_poeng
 
     df["sum_poeng"] = sum_poeng
     df["p_del1.1"] = oppg1_1_poeng
     df["p_del1.2"] = oppg1_2_poeng
-    df["p_del2.1"] = oppg2_1_poeng
+    df["p_del2"] = oppg2_poeng
     df["p_del3"] = oppg3_poeng
 
     return df

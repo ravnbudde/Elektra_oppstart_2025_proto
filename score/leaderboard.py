@@ -23,9 +23,13 @@ class LeaderboardApp:
         self.root.title("Leaderboard")
 
         self.tree = ttk.Treeview(root)
-        self.tree["columns"] = ("Sum poeng",)
+        self.tree["columns"] = ("Sum poeng","Oppgave 1.1", "Oppgave 1.2", "Oppgave 2", "Oppgave 3")
         self.tree.heading("#0", text="Gruppe")
         self.tree.heading("Sum poeng", text="Sum poeng")
+        self.tree.heading("Oppgave 1.1", text="Oppgave 1.1")
+        self.tree.heading("Oppgave 1.2", text="Oppgave 1.2")
+        self.tree.heading("Oppgave 2", text="Oppgave 2")
+        self.tree.heading("Oppgave 3", text="Oppgave 3")
         self.tree.column("Sum poeng", anchor="center")
 
         style = ttk.Style()
@@ -70,14 +74,13 @@ class LeaderboardApp:
 
     def oppdater_leaderboard(self):
         with self.lock:
-            # Tøm treet først
             for rad in self.tree.get_children():
                 self.tree.delete(rad)
 
             if not os.path.exists(self.csv_fil):
                 return
 
-            try:    
+            try:
                 df = pd.read_csv(self.csv_fil)
             except Exception as e:
                 print(f"Feil ved lesing av {self.csv_fil}: {e}")
@@ -86,33 +89,37 @@ class LeaderboardApp:
             df = df.sort_values(by="sum_poeng", ascending=False)
 
             for i, (_, row) in enumerate(df.iterrows()):
+                try:
+                    def format_med_prosent(poeng_col, prosent_col):
+                        poeng = float(row.get(poeng_col, 0))
+                        prosent = float(row.get(prosent_col, 0)) 
+                        return f"{poeng:.2f} ({prosent:.0f}%)"
+
+                    values = (
+                        f"{float(row['sum_poeng']):.2f}",
+                        format_med_prosent('del1.1', 'p_del1.1'),
+                        format_med_prosent('del1.2', 'p_del1.2'),
+                        format_med_prosent('del2', 'p_del2'),
+                        format_med_prosent('del3', 'p_del3'),
+                    )
+                except (ValueError, TypeError):
+                    values = (
+                        f"{row.get('sum_poeng', 0):.2f}",
+                        f"{row.get('del1.1', 0):.2f}",
+                        f"{row.get('del1.2', 0):.2f}",
+                        f"{row.get('del2', 0):.2f}",
+                        f"{row.get('del3', 0):.2f}",
+                    )
+
                 if i == 0 and self.gold_img is not None:
-                    self.tree.insert(
-                        "", "end",
-                        text=str(row["gruppeNr"]),
-                        values=(f"{row['sum_poeng']:.2f}",),
-                        image=self.gold_img
-                    )
+                    self.tree.insert("", "end", text=str(row["gruppeNr"]), values=values, image=self.gold_img)
                 elif i == 1 and self.silver_img is not None:
-                    self.tree.insert(
-                        "", "end",
-                        text=str(row["gruppeNr"]),
-                        values=(f"{row['sum_poeng']:.2f}",),
-                        image=self.silver_img
-                    )
+                    self.tree.insert("", "end", text=str(row["gruppeNr"]), values=values, image=self.silver_img)
                 elif i == 2 and self.bronze_img is not None:
-                    self.tree.insert(
-                        "", "end",
-                        text=str(row["gruppeNr"]),
-                        values=(f"{row['sum_poeng']:.2f}",),
-                        image=self.bronze_img
-                    )
+                    self.tree.insert("", "end", text=str(row["gruppeNr"]), values=values, image=self.bronze_img)
                 else:
-                    self.tree.insert(
-                        "", "end",
-                        text=str(row["gruppeNr"]),
-                        values=(f"{row['sum_poeng']:.2f}",)
-                    )
+                    self.tree.insert("", "end", text=str(row["gruppeNr"]), values=values)
+
 
     def schedule_oppdatering(self):
         # Kjør oppdatering og planlegg neste kall
