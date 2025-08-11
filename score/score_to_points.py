@@ -56,7 +56,7 @@ def kontinuerlig_les_og_omregn(csvLock, convertLock):
                 else:
                     df = pd.DataFrame(columns=KOLONNER)
 
-                df_omregnet = omregn_verdier(df)
+                df_omregnet = beregn_score(df)
 
                 # låser en lås inne i en annen, men burde gå fint da den andre tråden som bruker convertLock ikke har tilgang til csvLock
                 with convertLock:
@@ -68,17 +68,51 @@ def kontinuerlig_les_og_omregn(csvLock, convertLock):
 
         time.sleep(LESNING_INTERVAL_SEC)
 
-def beregn_score(sekunder, max_tid, max_score):
-    """
-    Returnerer score basert på tid (sekunder) som følger en eksponentielt avtagende kurve.
-    Score starter på max_score ved 0 sekunder, og er 1/10 av max_score ved max_tid.
-    """
-    if sekunder < 0:
-        sekunder = 0
+# def beregn_score(sekunder, max_tid, max_score):
+#     """
+#     Returnerer score basert på tid (sekunder) som følger en eksponentielt avtagende kurve.
+#     Score starter på max_score ved 0 sekunder, og er 1/10 av max_score ved max_tid.
+#     """
+#     if sekunder < 0:
+#         sekunder = 0
 
-    k = math.log(10) / max_tid
-    score = max_score * math.exp(-k * sekunder)
-    return score
+#     k = math.log(10) / max_tid
+#     score = max_score * math.exp(-k * sekunder)
+#     return score
+
+def beregn_score(df):
+    def normalize(series, max_points, higher_is_better=True):
+        is_nan = series.isna()
+
+        min_val, max_val = series.min(skipna=True), series.max(skipna=True)
+        if max_val == min_val:
+            norm = pd.Series([max_points/2]*len(series))
+        elif higher_is_better:
+            norm = (series - min_val) / (max_val - min_val) * max_points
+        else:
+            norm = (max_val - series) / (max_val - min_val) * max_points
+        norm[is_nan] = 0
+        return norm
+
+    # Beregn poeng per oppgave
+    oppg1_1_poeng = normalize(df["del1.1"], 100, higher_is_better=False) 
+    oppg1_2_poeng = normalize(df["del1.2"], 100, higher_is_better=False)
+    oppg2_1_poeng = normalize(df["del2.1"], 100, higher_is_better=True)
+    oppg3_poeng = normalize(df["del3"], 100, higher_is_better=False)
+    oppg2_2_poeng = df["del2.2"].fillna(0)
+    bonus_poeng = df["bonus"].fillna(0)
+
+    sum_poeng = 0.5*oppg1_1_poeng + 0.5*oppg1_2_poeng + oppg2_1_poeng + oppg3_poeng + oppg2_2_poeng + bonus_poeng
+
+    df["sum_poeng"] = sum_poeng
+    df["p_del1.1"] = oppg1_1_poeng
+    df["p_del1.2"] = oppg1_2_poeng
+    df["p_del2.1"] = oppg2_1_poeng
+    df["p_del3"] = oppg3_poeng
+
+    return df
+
+
 
 if __name__ == "__main__":
     lock = threading.Lock()
