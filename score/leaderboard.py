@@ -93,7 +93,7 @@ class LeaderboardApp:
                     def format_med_prosent(poeng_col, prosent_col):
                         poeng = float(row.get(poeng_col, 0))
                         prosent = float(row.get(prosent_col, 0)) 
-                        return f"{poeng:.2f} ({prosent:.0f}%)"
+                        return f"{poeng:.2f} ({prosent:.2f}%)"
 
                     values = (
                         f"{float(row['sum_poeng']):.2f}",
