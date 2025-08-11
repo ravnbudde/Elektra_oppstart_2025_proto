@@ -83,8 +83,6 @@ class LeaderboardApp:
                 print(f"Feil ved lesing av {self.csv_fil}: {e}")
                 return
 
-            poengkolonner = [col for col in df.columns if col != "gruppeNr"]
-            df["sum_poeng"] = df[poengkolonner].fillna(0).astype(float).sum(axis=1)
             df = df.sort_values(by="sum_poeng", ascending=False)
 
             for i, (_, row) in enumerate(df.iterrows()):
