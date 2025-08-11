@@ -133,10 +133,12 @@ void PID::run_pid() {
     if (t_ki >= 0.001) this->speed_diff -= int(t_ki * this->integral);
     if (t_kd >= 0.001) this->speed_diff -= int(t_kd * this->derivat);
 
-    float temp_left = normal_speed - this->speed_diff;
-    float temp_right = normal_speed + this->speed_diff;
+    float temp_left = normal_speed + this->speed_diff;
+    float temp_right = normal_speed - this->speed_diff;
 
-    // Serial.print("PID: lspeed: ");
+    // Serial.print("diff: ");
+    // Serial.print(speed_diff);
+    // Serial.print("\tPID: lspeed: ");
     // Serial.print(temp_left);
     // Serial.print("\tPID: rspeed: ");
     // Serial.println(temp_right);

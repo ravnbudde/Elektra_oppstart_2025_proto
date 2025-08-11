@@ -179,8 +179,8 @@ void mqtt_task(void * pvArg)
     }
   
     if (mqtt.receive.last_speed.length() > 0) {
-      Serial.print("Mottok fart: ");
-      Serial.println(mqtt.receive.last_speed);
+      // Serial.print("Mottok fart: ");
+      // Serial.println(mqtt.receive.last_speed);
   
       std::pair<float*, size_t> parsed_msg = parse_MQTT_msg(mqtt.receive.last_speed);
   
