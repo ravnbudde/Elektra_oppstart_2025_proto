@@ -1,9 +1,13 @@
+import os
+# Hide the pygame hello banner
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+
 import sys
 import socket
 import struct
 import pygame
 import math
-import os
+import random
 
 from loadmap import get_csv_files, load_map
 from ball   import Ball
@@ -38,11 +42,15 @@ COLORS = {
     6: (255,  0,255),  # checkpoint
 }
 
+# ─── Paths ────────────────────────────────────────
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+
 # ─── MQTT Configuration ───────────────────────────
 MQTT_ENABLED      = True
 MQTT_BROKER       = "localhost"
 MQTT_PORT         = 1883
-MQTT_TOPIC_SCORE  = None  # settes i main()
+MQTT_TOPIC_SCORE  = None  # set dynamically
 
 try:
     import paho.mqtt.client as mqtt
@@ -52,6 +60,18 @@ except ImportError:
 # ─── Campaign Configuration ───────────────────────
 CAMPAIGN_LEVELS      = 5
 CAMPAIGN_MAP_NAMES   = [f"map{i}.csv" for i in range(1, CAMPAIGN_LEVELS+1)]
+
+# ─── Jumpscare Configuration ──────────────────────
+SCARE_ENABLED          = True
+SCARE_ON_LAST_MAP_ONLY = True
+SCARE_PROB             = 0.003   # 0.3% per star on last map
+SCARE_DURATION_MS      = 600
+SCARE_IMAGE_PATH       = os.path.join(ASSETS_DIR, "jumpscare.png")
+SCARE_SOUND_PATH       = os.path.join(ASSETS_DIR, "scream.mp3")  # mp3/ogg/wav
+
+SCARE_IMG              = None
+SCARE_SOUND            = None
+SCARE_SOUND_IS_MUSIC   = False  # True for mp3 via mixer.music
 
 
 # ──────────────── Rendering & helpers ────────────────
@@ -200,15 +220,141 @@ def intermission_screen(screen, w, h, level_idx, level_score, total_score, next_
                 if e.key == pygame.K_q:     return False
         pygame.time.wait(50)
 
+def published_screen(screen, w, h, total_score, topic):
+    big   = pygame.font.Font(None, 48)
+    small = pygame.font.Font(None, 28)
+    lines = [
+        "✅ Score publisert til server!",
+        f"Topic: {topic}",
+        f"Score: {total_score}",
+        "Trykk en tast for å fortsette"
+    ]
+    screen.fill((18,18,18))
+    for i, txt in enumerate(lines):
+        surf = (big if i==0 else small).render(txt, True, (230,230,230))
+        rect = surf.get_rect(center=(w//2, h//2 - 60 + i*40))
+        screen.blit(surf, rect)
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                return
+            if e.type == pygame.KEYDOWN:
+                waiting = False
+        pygame.time.wait(30)
+
+# ─── Jumpscare helpers ────────────────────────────
+def load_jumpscare_assets():
+    """Load jumpscare image/sound. Uses mixer.music for MP3."""
+    global SCARE_IMG, SCARE_SOUND, SCARE_SOUND_IS_MUSIC
+    if not SCARE_ENABLED:
+        return
+    # image
+    try:
+        if os.path.exists(SCARE_IMAGE_PATH):
+            img = pygame.image.load(SCARE_IMAGE_PATH).convert()
+            SCARE_IMG = img
+        else:
+            print(f"⚠️  Jumpscare-bilde ikke funnet: {SCARE_IMAGE_PATH}")
+    except Exception as e:
+        print(f"⚠️  Kunne ikke laste jumpscare-bilde: {e}")
+    # sound
+    try:
+        ext = os.path.splitext(SCARE_SOUND_PATH)[1].lower()
+        if ext == ".mp3":
+            SCARE_SOUND_IS_MUSIC = True
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+        else:
+            if os.path.exists(SCARE_SOUND_PATH):
+                if not pygame.mixer.get_init():
+                    pygame.mixer.init()
+                SCARE_SOUND = pygame.mixer.Sound(SCARE_SOUND_PATH)
+            else:
+                print(f"⚠️  Jumpscare-lyd ikke funnet: {SCARE_SOUND_PATH}")
+    except Exception as e:
+        print(f"⚠️  Kunne ikke laste jumpscare-lyd: {e}")
+
+def maybe_jumpscare(screen, is_last_map, clock):
+    """
+    Shows the scare and plays the scream. Returns the paused time (seconds),
+    while ticking the same pygame.Clock so no giant dt accumulates.
+    """
+    if not SCARE_ENABLED:
+        return 0.0
+    if SCARE_ON_LAST_MAP_ONLY and not is_last_map:
+        return 0.0
+    if SCARE_IMG is None:
+        return 0.0
+    if random.random() >= SCARE_PROB:
+        return 0.0
+
+    # start audio
+    ch = None
+    try:
+        if SCARE_SOUND_IS_MUSIC:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+            pygame.mixer.music.load(SCARE_SOUND_PATH)
+            pygame.mixer.music.play()
+        elif SCARE_SOUND is not None:
+            ch = SCARE_SOUND.play()
+    except Exception:
+        pass
+
+    # show image fullscreen
+    w, h = screen.get_size()
+    try:
+        img = pygame.transform.scale(SCARE_IMG, (w, h))
+    except Exception:
+        img = SCARE_IMG
+    screen.blit(img, (0, 0))
+    pygame.display.flip()
+
+    # block while audio plays (or until duration), ticking the same clock
+    start_ms = pygame.time.get_ticks()
+    while True:
+        # keep dt small by ticking during pause
+        if clock is not None:
+            clock.tick(FPS)
+
+        elapsed = pygame.time.get_ticks() - start_ms
+        if elapsed >= SCARE_DURATION_MS:
+            break
+        playing = False
+        if SCARE_SOUND_IS_MUSIC:
+            playing = pygame.mixer.music.get_busy()
+        elif ch is not None:
+            playing = ch.get_busy()
+        if not playing:
+            break
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit(); sys.exit(0)
+        pygame.time.wait(10)
+    if SCARE_SOUND_IS_MUSIC:
+        try: pygame.mixer.music.stop()
+        except Exception: pass
+    return (pygame.time.get_ticks() - start_ms) / 1000.0
+
 
 # ──────────────── MQTT helpers ────────────────
 def mqtt_setup():
-    if not MQTT_ENABLED:
+    if not MQTT_ENABLED or mqtt is None:
         return None
-    if mqtt is None:
-        print("⚠️  paho-mqtt ikke installert. Kjører uten MQTT.")
-        return None
-    client = mqtt.Client(protocol=mqtt.MQTTv311)  # unngår DeprecationWarning
+
+    # Create client with the *enum* for v2.x; fall back for v1.x
+    try:
+        client = mqtt.Client(
+            protocol=mqtt.MQTTv311,
+            callback_api_version=mqtt.CallbackAPIVersion.API_VERSION2  # <- enum, not 5
+        )
+    except Exception:
+        # paho-mqtt < 2.0: no callback_api_version parameter
+        client = mqtt.Client(protocol=mqtt.MQTTv311)
+
     try:
         client.connect(MQTT_BROKER, MQTT_PORT, keepalive=30)
         client.loop_start()
@@ -217,16 +363,13 @@ def mqtt_setup():
         print(f"⚠️  MQTT-tilkobling feilet: {e}. Kjører uten MQTT.")
         return None
 
+
 def mqtt_publish_score(client, event, payload):
-    """
-    Publiserer KUN tallet (score) som payload til MQTT_TOPIC_SCORE.
-    event er ikke i bruk for topic, men beholdes som signatur for klarhet.
-    """
+    """Publish ONLY the numeric score to the configured topic."""
     if client is None or not MQTT_TOPIC_SCORE:
         return
     try:
-        score_str = str(payload)
-        client.publish(MQTT_TOPIC_SCORE, score_str, qos=1, retain=False)
+        client.publish(MQTT_TOPIC_SCORE, str(payload), qos=1, retain=False)
     except Exception as e:
         print(f"⚠️  MQTT publish feilet: {e}")
 
@@ -250,7 +393,7 @@ def game_loop(selected, campaign_info=None, mqtt_client=None):
     hole_count = 0
     t0 = pygame.time.get_ticks()/1000.0
 
-    # UDP
+    # UDP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("0.0.0.0", UDP_PORT))
     sock.setblocking(False)
@@ -263,6 +406,7 @@ def game_loop(selected, campaign_info=None, mqtt_client=None):
     map_index       = campaign_info.get("map_index") if campaign_info else None
     per_map_scores  = campaign_info.get("per_map_scores") if campaign_info else None
     total_so_far    = campaign_info.get("total_so_far") if campaign_info else 0
+    is_last_map     = campaign_info.get("is_last_map") if campaign_info else False
 
     while True:
         dt = clock.tick(FPS)/1000.0
@@ -270,29 +414,21 @@ def game_loop(selected, campaign_info=None, mqtt_client=None):
             if e.type==pygame.QUIT:
                 pygame.quit(); sys.exit(0)
 
-        # ─── SECRET CHEAT COMBO: P + E + N + I + S ─────────
+        # SECRET CHEAT: P+E+N+I+S
         keys = pygame.key.get_pressed()
         if (keys[pygame.K_p] and keys[pygame.K_e] and
             keys[pygame.K_n] and keys[pygame.K_i] and
             keys[pygame.K_s]):
-            # Fullfør level umiddelbart med nåværende score
             t_end = pygame.time.get_ticks()/1000.0 - t0
             base  = P0 * math.exp(-k * t_end)
             final = max(0, int(base + STAR_BONUS*star_count - HOLE_PENALTY*hole_count))
-
-            stats = {
-                "map": selected,
-                "score": final,
-                "time": round(t_end, 3),
-                "stars": star_count,
-                "holes": hole_count,
-            }
-
+            stats = {"map": selected, "score": final, "time": round(t_end, 3),
+                     "stars": star_count, "holes": hole_count}
             mqtt_publish_score(mqtt_client, "level_complete", stats["score"])
             sock.close()
             return {"replay": False, **stats}
 
-        # Drain UDP
+        # Drain UDP (use only finite values)
         latest=None
         while True:
             try:
@@ -301,11 +437,20 @@ def game_loop(selected, campaign_info=None, mqtt_client=None):
             except BlockingIOError:
                 break
         if latest:
-            tilt_x,tilt_y = struct.unpack("!ff", latest)
+            tx_raw, ty_raw = struct.unpack("!ff", latest)
+            if math.isfinite(tx_raw) and math.isfinite(ty_raw):
+                tilt_x, tilt_y = tx_raw, ty_raw
 
         # Physics & collisions
         old = ball.pos.copy()
         ball.update(tilt_x, tilt_y, dt)
+
+        # If physics blew up, reset to checkpoint
+        if not (math.isfinite(ball.pos.x) and math.isfinite(ball.pos.y) and
+                math.isfinite(ball.vel.x) and math.isfinite(ball.vel.y)):
+            ball = Ball(checkpoint, TILE_SIZE)
+            tilt_x = tilt_y = 0.0
+            continue
 
         # X-axis collision
         tx,ty = int(ball.pos.x//TILE_SIZE), int(old.y//TILE_SIZE)
@@ -330,28 +475,26 @@ def game_loop(selected, campaign_info=None, mqtt_client=None):
             if cell==5:  # star
                 star_count += 1
                 grid[cy][cx] = 0
+                # Jumpscare: pause timer and tick clock while it plays
+                paused = maybe_jumpscare(screen, is_last_map, clock)
+                if paused > 0:
+                    t0 += paused
+                    # also zero out velocities if you want *extra* safety:
+                    # ball.vel.x = 0; ball.vel.y = 0
             if cell==6:  # checkpoint
                 checkpoint = (cx,cy)
                 grid[cy][cx] = 0
             if finish and (cx,cy)==finish:
                 sock.close()
-                # final scoring
                 t_end = pygame.time.get_ticks()/1000.0 - t0
                 base  = P0 * math.exp(-k * t_end)
                 final = max(0, int(base + STAR_BONUS*star_count - HOLE_PENALTY*hole_count))
-
-                stats = {
-                    "map": selected,
-                    "score": final,
-                    "time": round(t_end, 3),
-                    "stars": star_count,
-                    "holes": hole_count,
-                }
-
+                stats = {"map": selected, "score": final, "time": round(t_end, 3),
+                         "stars": star_count, "holes": hole_count}
                 mqtt_publish_score(mqtt_client, "level_complete", stats["score"])
                 return {"replay": False, **stats}
 
-        # Compute current score (live)
+        # Live score
         t_now     = pygame.time.get_ticks()/1000.0 - t0
         base_now  = P0 * math.exp(-k * t_now)
         current   = max(0, int(base_now + STAR_BONUS*star_count - HOLE_PENALTY*hole_count))
@@ -405,10 +548,7 @@ def game_loop(selected, campaign_info=None, mqtt_client=None):
 
 # ──────────────── Campaign ────────────────
 def resolve_campaign_maps():
-    """
-    Returnerer map1.csv..map5.csv i rekkefølge hvis de finnes.
-    Hopper over manglende, men avbryter hvis ingen finnes.
-    """
+    """Return map1.csv..map5.csv in order if they exist (skip missing)."""
     available = set(get_csv_files())
     ordered   = []
     for name in CAMPAIGN_MAP_NAMES:
@@ -418,11 +558,15 @@ def resolve_campaign_maps():
             print(f"⚠️  Kart mangler: {name} (hopper over)")
     if not ordered:
         print("❌ Ingen av kampanjekartene ble funnet.")
-        sys.exit(1)
     return ordered
 
 def run_campaign(mqtt_client, gruppe_id):
     selected_maps = resolve_campaign_maps()
+    if not selected_maps:
+        pygame.display.set_mode((800, 600))
+        end_screen(pygame.display.get_surface(), 800, 600, 0)
+        return
+
     total = 0
     per_map_scores = [None]*CAMPAIGN_LEVELS
 
@@ -433,7 +577,8 @@ def run_campaign(mqtt_client, gruppe_id):
                 "gruppe_id": gruppe_id,
                 "map_index": i,
                 "per_map_scores": per_map_scores,
-                "total_so_far": total
+                "total_so_far": total,
+                "is_last_map": (i == len(selected_maps))
             },
             mqtt_client=mqtt_client
         )
@@ -453,21 +598,25 @@ def run_campaign(mqtt_client, gruppe_id):
             if not cont:
                 break
 
-    # publish final total (kun tallet)
-# publish final total (kun tallet)
+    # Publish TOTAL (just the number) before ending
     if mqtt_client:
         mqtt_publish_score(mqtt_client, "campaign_complete", total)
-        pygame.time.wait(200)  # liten pause så meldingen faktisk går ut
+        pygame.time.wait(200)  # give it a moment to send
 
+    # Confirmation screen and final screen
     screen = pygame.display.set_mode((800, 600))
+    published_screen(screen, 800, 600, total_score=total, topic=MQTT_TOPIC_SCORE)
     end_screen(screen, 800, 600, total)
-
 
 
 # ──────────────── Entrypoint ────────────────
 def main():
     pygame.init()
+    # Set a video mode BEFORE loading assets (needed by .convert())
     screen = pygame.display.set_mode((800, 600))
+    # Load jumpscare assets after set_mode
+    load_jumpscare_assets()
+
     gruppe_id = text_input_screen(screen, 800, 600, "Skriv inn gruppe_id:")
     if not gruppe_id:
         pygame.quit()
