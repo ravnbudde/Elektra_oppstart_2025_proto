@@ -15,7 +15,7 @@ BILDE_FIL = os.path.join(SCRIPT_DIR, "pic/car.png")  # Sett inn ditt bilde her
 
 
 # Nye kolonner
-KOLONNER = ["gruppeNr", "del1.1", "del1.2", "del2.1", "del2.2", "del3", "bonus"]
+KOLONNER = ["gruppeNr", "del1.1", "del1.2", "del2", "del3", "bonus"]
 
 
 # Opprett tom CSV hvis den ikke finnes
@@ -91,7 +91,7 @@ class GruppeApp:
             frame = tk.Frame(self.second_frame)
             frame.pack(anchor="w", pady=2)
 
-            # Sett label med fast bredde (f.eks 8-12 tegn bredde), og høyrejuster teksten
+            # Sett label med fast bredde
             lbl = tk.Label(frame, text=f"{navn}:", width=10, anchor="e")  
             lbl.pack(side="left")
 
@@ -212,4 +212,7 @@ def start_gui(csvLock, root):
 
 if __name__ == "__main__":
     lock = threading.Lock()
-    start_gui(lock)
+    root = tk.Tk()
+    root.title("Gruppe Input")
+    root.geometry("600x400")
+    start_gui(lock, root)

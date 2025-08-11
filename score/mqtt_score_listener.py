@@ -10,7 +10,7 @@ MQTT_ROOT = "zumo_car/+/score"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_FILE = os.path.join(SCRIPT_DIR, "resultater.csv")
-KOLONNER = ["gruppeNr", "del1.1", "del1.2", "del2.1", "del2.2", "del3", "bonus"]
+KOLONNER = ["gruppeNr", "del1.1", "del1.2", "del2", "del3", "bonus"]
 
 local_lock = threading.Lock()
 
@@ -31,8 +31,12 @@ def on_message(client, userdata, msg):
     else:
         siste_del = payload
 
+    
+
     try:
         verdi = float(siste_del)
+        if verdi == float('inf') or verdi == float('-inf'):
+            raise ValueError("Verdi er uendelig (inf)")
     except ValueError:
         print(f"Ugyldig float-verdi mottatt på {topic}: {payload}")
         return
