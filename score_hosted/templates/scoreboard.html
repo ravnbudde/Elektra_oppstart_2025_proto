@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaderboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div><p class="kicker">Oppstartsuka</p><h1>Leaderboard</h1></div>
+  </header>
+  <main>
+    <section class="leaderboard" aria-labelledby="leaderboard-title">
+      <div class="section-heading">
+        <h2 id="leaderboard-title">Resultater</h2>
+        <span id="connection-status" class="status">Oppdaterer...</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Gruppe</th><th>Sum poeng</th><th>Oppgave 1.1</th><th>Oppgave 1.2</th><th>Oppgave 2</th><th>Oppgave 3</th></tr></thead>
+          <tbody id="score-rows"></tbody>
+        </table>
+        <p id="empty-state" class="empty" hidden>Ingen resultater er registrert ennå.</p>
+      </div>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>

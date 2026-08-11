@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gruppe input</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="admin-page" data-csrf-token="{{ csrf_token }}">
+  <header class="topbar">
+    <div><p class="kicker">Oppstartsuka</p><h1>Gruppe input</h1></div>
+  </header>
+  <main class="admin-main">
+    <section class="admin-window">
+      <form id="login-form" class="panel">
+        <label for="password">Skriv inn passord:</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <p class="form-status" aria-live="polite"></p>
+        <button type="submit">OK</button>
+      </form>
+      <form id="group-form" class="panel" hidden>
+        <label for="group-number">Skriv inn gruppenummer:</label>
+        <input id="group-number" name="group" autocomplete="off" maxlength="64" required>
+        <p class="form-status" aria-live="polite"></p>
+        <button type="submit">Neste</button>
+      </form>
+      <form id="score-form" class="panel" hidden>
+        <h2 id="selected-group"></h2>
+        <div id="score-fields"></div>
+        <p class="form-status" aria-live="polite"></p>
+        <div class="actions"><button id="score-back" class="secondary" type="button">Tilbake</button><button type="submit">Lagre</button></div>
+      </form>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='admin.js') }}" defer></script>
+</body>
+</html>

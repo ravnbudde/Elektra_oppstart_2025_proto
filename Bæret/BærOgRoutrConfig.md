@@ -1,5 +1,5 @@
 ### BÆRET
-Hostname: BIAISraspberrypi 
+Hostname: BIAISraspberrypi
 
 Username: OppstartsVeka
 
@@ -27,7 +27,6 @@ Password: shinyteapot294
 Username: BIAISbroker
 
 Password: shinyteapot294
-
 
 
 
@@ -76,7 +75,7 @@ sudo systemctl status mosquitto
 ---
 
 ### 4. Test det
- Installer klientverktøya visst på bæret 
+ Installer klientverktøya visst på bæret
 
 Køyr:
 
@@ -108,4 +107,7 @@ Og i eit anna terminalvindauge:
 mosquitto_sub -h BIAISraspberrypi.local -u BIAISbroker -P shinyteapot294 -t test/topic
 ```
 
+
+### Scoreboard
+Se /score_hosted
 
