@@ -23,6 +23,7 @@ enum ZumoMode {
  * @brief Enum for å skille hvilken status bilen er i.
  */
 enum ZumoStates {
+    IDLE,
     NORMAL,
     PENALTY,
     CALIBRATING
@@ -32,6 +33,8 @@ enum ZumoStates {
  * @brief Enum for å skille ulike typer commandoer fra hverandre. (kommandoer fra MQTT)
  */
 enum ZumoCommand {
+    START_RUNNING,
+    STOP_RUNNING,
     START_PENALTY,
     START_CALIBRATE,
     PID_MODE,
@@ -100,7 +103,7 @@ class ZumoCommandHandler
 {
 private:
     ZumoMode mode = ZumoMode::MANUEL;
-    ZumoStates state = ZumoStates::NORMAL; 
+    ZumoStates state = ZumoStates::IDLE;
     
     SemaphoreHandle_t speed_mutex;
     SemaphoreHandle_t command_mutex;
