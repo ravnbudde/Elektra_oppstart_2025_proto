@@ -60,6 +60,12 @@ def on_message(client, userdata, msg):
     if oppgave in ["del1.1", "del1.2", "del3"] and verdi <= 0:
         print("Negativ tid er ikke lov!")
         return
+    if oppgave in ["del1.2"] and verdi < 1600:
+        print("For lav score! Husk å svinge")
+        return
+    if oppgave in ["del1.1"] and verdi < 3.35:
+        print("For lav score! Ikke juks")
+        return
     
     # Faktisk filredigering
     with local_lock:
