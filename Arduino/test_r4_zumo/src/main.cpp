@@ -10,7 +10,7 @@
 #include "../lib/mqtt/MQTTManager.h"
 #include "../lib/mqtt/mqtt_topics.h"
 #include "../lib/FSM.h"
-#include "../global_objects.h"
+#include "../lib/global_objects.h"
 
 
 bool newMessage = false;  // Flag for å indikere om en ny melding er mottatt

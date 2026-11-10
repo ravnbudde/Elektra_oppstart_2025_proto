@@ -19,3 +19,25 @@ ESP_32_C6_dev_kit1/ESP_LiDAR_V1/ESP32_C6_Vl53l0x/components/vl53l0x_esp32/
 *.cproj
 
 Arduino/test_r4_zumo/lib/arduino_secrets.h
+
+# Lokale Python-miljøer og genererte filer
+.venv/
+.venv-*/
+.repo-review/
+/student-materiale/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Simulink genererer disse på nytt
+slprj/
+*.slxc
+
+# Lokale innstillinger og driftsdata (ikke eksempel- eller oppgavefiler)
+.env
+Bæret/score_hosted/instance/
+Bæret/score_hosted/*.db*
+/local-data/
+Bæret/mqtt-broker/windows/data/
+Bæret/mqtt-broker/windows/log/
+Arduino/test_r4_zumo/.pio/

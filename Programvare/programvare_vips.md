@@ -1,5 +1,10 @@
 # Programmvare som må installeres på VIPS-PCane
 
+> Historisk liste. Se [samlet oppsettsguide](../docs/OPPSETT.md#5-klargjør-bilen-og-matlab)
+> for anbefalt oppsett og verifisering av avhengigheter. Sensormodellens UDP Send
+> krever også Instrument Control Toolbox. Full verktøyliste må kontrolleres mot
+> modellene som faktisk skal brukes.
+
 Ei oversikt over nødvendige verktøy og tillegg som må vere installert for å utvikle, teste og vise fram sensorbaserte system.
 
 ---

@@ -1,4 +1,10 @@
 ### BÆRET
+
+> Samlede nettverks- og innloggingsopplysninger for arrangementsoppsettet.
+> MQTT-bruker og passord som installereren spør etter, står under [BROKER](#broker).
+> For installasjon og oppdatering,
+> bruk [samlet Pi-veiledning](README.md) og `sudo bash install.sh` fra `Bæret/`.
+> De manuelle installasjonsstegene nedenfor er erstattet av installereren.
 Hostname: BIAISraspberrypi
 
 Username: OppstartsVeka
@@ -109,5 +115,5 @@ mosquitto_sub -h BIAISraspberrypi.local -u BIAISbroker -P shinyteapot294 -t test
 
 
 ### Scoreboard
-Se /score_hosted
+Se [poengtavlen](score_hosted/README.md).
 
