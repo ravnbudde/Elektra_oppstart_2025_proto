@@ -74,6 +74,20 @@ void ZumoCommandHandler::handle_last_command()
     switch (command.cmd)
     {
         /* __________ Status oppdateringer __________ */
+    case START_RUNNING:
+    case MANUEL_MODE:
+        if (state != ZumoStates::CALIBRATING)
+        {
+            mode = ZumoMode::MANUEL;
+            state = ZumoStates::NORMAL;
+        }
+        break;
+
+    case STOP_RUNNING:
+        lineSensor.setCalibrate(false);
+        state = ZumoStates::IDLE;
+        break;
+
     case START_PENALTY:
         if (state != ZumoStates::CALIBRATING)
         {
@@ -86,11 +100,11 @@ void ZumoCommandHandler::handle_last_command()
         break;
 
     case PID_MODE:
-        mode = ZumoMode::AUTO;
-        break;
-    
-    case MANUEL_MODE:
-        mode = ZumoMode::MANUEL;
+        if (state != ZumoStates::CALIBRATING)
+        {
+            mode = ZumoMode::AUTO;
+            state = ZumoStates::NORMAL;
+        }
         break;
 
 
@@ -128,13 +142,17 @@ void ZumoCommandHandler::handle_last_command()
 
 
 void ZumoCommandHandler::calculate_speed() {
-    int l_speed;
-    int r_speed;
+    int l_speed = 0;
+    int r_speed = 0;
     bool calibrate_fin = false;
     static int calibrate_iter = 0;    
 
     switch (state)
     {
+    case ZumoStates::IDLE:
+        // Keep the motors stopped while sensor data continues to be processed.
+        break;
+
     case ZumoStates::NORMAL:
 
         if(mode == ZumoMode::AUTO)
@@ -151,7 +169,9 @@ void ZumoCommandHandler::calculate_speed() {
     case ZumoStates::CALIBRATING:
         std::tie(l_speed, r_speed, calibrate_fin) = lineSensor.calibrate_line_sensor();
         if (calibrate_fin) {
-            state = ZumoStates::NORMAL;
+            state = ZumoStates::IDLE;
+            l_speed = 0;
+            r_speed = 0;
         }
         break;
     

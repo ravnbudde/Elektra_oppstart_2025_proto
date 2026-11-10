@@ -73,6 +73,9 @@ TickType_t mqtt_last_wake_time;
 void setup()
 {
   Serial.begin(115200);
+  Serial.print("Car ID: ");
+  Serial.println(CAR_ID);
+
   // // Koble til internett
   setup_WiFI();
 
@@ -142,6 +145,12 @@ void mqtt_task(void * pvArg)
       if(mqtt.receive.last_cmd == "penalty")
       {
         cmd = ZumoCommand::START_PENALTY;
+      } else if (mqtt.receive.last_cmd == "Start")
+      {
+        cmd = ZumoCommand::START_RUNNING;
+      } else if (mqtt.receive.last_cmd == "Stop")
+      {
+        cmd = ZumoCommand::STOP_RUNNING;
       } else if (mqtt.receive.last_cmd == "Calibrate")
       {
         cmd = ZumoCommand::START_CALIBRATE;

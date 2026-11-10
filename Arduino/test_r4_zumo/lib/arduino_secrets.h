@@ -1,6 +1,6 @@
 
 // ID of the car
-#define CAR_ID "14"
+#define CAR_ID "13"
 
 // Network SSID 
 #define SECRET_SSID_WIFI "BIAIS_OppstartsVeka" 
